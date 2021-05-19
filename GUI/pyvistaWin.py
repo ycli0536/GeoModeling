@@ -1,0 +1,315 @@
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from UI_init.Ui_ViewWin import Ui_MainWindow
+from functions.utils import read_mesh_file
+from pyvistaqt import QtInteractor, MainWindow
+
+import numpy as np
+import pyvista as pv
+
+
+def track_error(func):
+    def wrapper(self):
+        try:
+            func(self)
+        except Exception as e:
+            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
+    return wrapper
+
+
+def track_error_args(func):
+    def wrapper(self, *args, **kwargs):
+        try:
+            func(self, *args, **kwargs)
+        except Exception as e:
+            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
+    return wrapper
+
+
+def finished_reminder(func):
+    def wrapper(self):
+        func(self)
+        QMessageBox.information(self, 'Finished', 'Task finished.', QMessageBox.Yes)
+    return wrapper
+
+
+def not_finished_yet(func):
+    def wrapper(self):
+        func(self)
+        QMessageBox.information(self, 'Information', 'NOT FINISHED YET...', QMessageBox.Yes)
+    return wrapper
+
+
+class pyvistaWin(MainWindow, Ui_MainWindow):
+    def __init__(self, nodeX, nodeY, nodeZ, model_in):
+        super(pyvistaWin, self).__init__()
+        self.setupUi(self)
+        self.model_flag = True
+        n_x = len(nodeX) - 1
+        n_y = len(nodeY) - 1
+        n_z = len(nodeZ) - 1
+        if model_in is None:
+            self.model_flag = False
+            model_in = np.zeros((n_x * n_y * n_z, 1), dtype=int)
+            self.action_Threshold.setEnabled(False)
+
+        self.bounding_box_flag = False
+        self.bounds_flag = True
+        self.orientation_marker_flag = False
+
+        self.plotter = QtInteractor()
+        self.verticalLayout.addWidget(self.plotter.interactor)
+
+        self.grid = self.generate_grid(nodeX, nodeY, nodeZ, model_in)
+        self.view_model()
+
+        # menu File
+        self.action_Load.triggered.connect(self.load_mesh_model)
+
+        # menu View
+        self.action_Wireframe.triggered.connect(self.wireframe)
+        self.action_BoundingBox.triggered.connect(self.bounding_box)
+        self.action_Bounds.triggered.connect(self.bounds)
+        self.action_Orientation_Marker.triggered.connect(self.show_all_marker)
+
+        self.action_Clear.triggered.connect(self.clear)
+
+        # menu Tools
+        self.action_Threshold.triggered.connect(self.add_threshold)
+        self.signal_close.connect(self.plotter.close)
+
+        # Toolbar
+        self.action_XOYview.triggered.connect(self.set_xoy_view)
+        self.action_XOZview.triggered.connect(self.set_xoz_view)
+        self.action_YOZview.triggered.connect(self.set_yoz_view)
+        self.action_Isometric.triggered.connect(self.set_view_isometric)
+
+    @track_error
+    def load_mesh_model(self):
+        self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
+        if self.mesh_path:
+            self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
+            if self.model_path:
+                nodeX, nodeY, nodeZ = read_mesh_file(self.mesh_path)
+                model_in = np.loadtxt(self.model_path)
+                self.model_flag = True
+                self.action_Threshold.setEnabled(True)
+                self.grid = self.generate_grid(nodeX, nodeY, nodeZ, model_in)
+                self.view_model()
+
+    # @track_error_args
+    def generate_grid(self, nodeX, nodeY, nodeZ, model_in):
+        xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
+        grid = pv.StructuredGrid(xx, yy, zz)
+        values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
+                                  order='F')
+        grid.cell_arrays["values"] = values.flatten(order="C")
+
+        return grid
+
+    @track_error
+    def view_model(self):
+        self.plotter.clear()
+        if self.model_flag:
+            self.plotter.add_mesh(self.grid,
+                                  # style='wireframe',
+                                  scalars='values',
+                                  show_edges=True)
+        else:
+            self.plotter.add_mesh(self.grid,
+                                  style='wireframe')
+        self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
+
+    @track_error
+    def add_threshold(self):
+        self.plotter.clear()
+        # # self.plotter.add_mesh(self.grid,
+        # #                       scalars='values',
+        # #                       opacity=0.3,
+        # #                       #   nan_opacity=0,
+        # #                       categories=True,
+        # #                       show_edges=False)
+        self.plotter.add_mesh_threshold(self.grid, invert=False)
+        self.plotter.add_bounding_box()
+
+        # print(type(threshed))
+
+        # grid_target = self.grid.cast_to_unstructured_grid()
+        # ghosts = np.argwhere(grid_target["values"] == self.val)
+        # grid_target.remove_cells(ghosts)
+        # self.plotter.add_mesh(grid_target,
+        #                       scalars='values',
+        #                       # log_scale=True,
+        #                       # opacity=1,
+        #                       show_edges=True)
+
+    @track_error
+    def wireframe(self):
+        if self.model_flag:
+            pass
+        else:
+            self.plotter.clear()
+            self.plotter.add_mesh(self.grid, style='wireframe')
+
+    def bounding_box(self):
+        if self.bounding_box_flag:
+            self.plotter.remove_bounding_box()
+            self.bounding_box_flag = False
+        else:
+            self.plotter.add_bounding_box()
+            self.bounding_box_flag = True
+
+    def bounds(self):
+        if self.bounds_flag:
+            self.plotter.remove_bounds_axes()
+            self.bounds_flag = False
+        else:
+            self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
+            self.bounds_flag = True
+            # self.plotter.show_bounds()
+
+    def show_all_marker(self):
+        if self.orientation_marker_flag:
+            self.plotter.hide_axes()
+            self.orientation_marker_flag = False
+        else:
+            self.plotter.add_axes()
+            self.orientation_marker_flag = True
+
+    def set_xoy_view(self):
+        self.plotter.view_xy()
+
+    def set_xoz_view(self):
+        self.plotter.view_xz()
+
+    def set_yoz_view(self):
+        self.plotter.view_yz()
+
+    def set_view_isometric(self):
+        self.plotter.view_isometric()
+
+    def reset_camera(self):
+        self.plotter.reset_camera()
+
+    def closeEvent(self, event):
+        self.plotter.close()
+
+    def ViewModel1(self):
+        self.plotter.clear()
+
+        X, Y, Z = np.meshgrid(self.nodeX, self.nodeY, self.nodeZ)
+        grid = pv.StructuredGrid(X, Y, Z)
+
+        values = self.model_in.reshape((len(self.nodeZ) - 1, len(self.nodeX) - 1, len(self.nodeY) - 1),
+                                       order='F')
+        grid.cell_arrays["values"] = values.flatten(order="C")
+
+        grid_target = grid.cast_to_unstructured_grid()
+        ghosts = np.argwhere(grid_target["values"] == 1.000000000000000e-08)
+        grid_target.remove_cells(ghosts)
+        self.plotter.add_mesh(grid_target,
+                              scalars='values',
+                              opacity=0.3,
+                              #   nan_opacity=0,
+                              categories=True,
+                              log_scale=True,
+                              show_edges=False)
+
+        # grid_target = grid.cast_to_unstructured_grid()
+        # ghosts = np.argwhere(grid_target["values"] != 1000)
+        # grid_target.remove_cells(ghosts)
+        # self.plotter.add_mesh(grid_target,
+        #                       scalars='values',
+        #                       log_scale=True,
+        #                       # opacity=1,
+        #                       show_edges=True)
+
+        # grid_target = grid.cast_to_unstructured_grid()
+        # ghosts = np.argwhere(grid_target["values"] != self.val)
+        # grid_target.remove_cells(ghosts)
+        # self.plotter.add_mesh(grid_target,
+        #                       scalars='values',
+        #                       log_scale=True,
+        #                       show_edges=True)
+
+        # self.plotter.add_mesh_threshold(grid)
+
+        # self.plotter.add_mesh_clip_plane(grid)
+        # self.plotter.add_mesh_slice_orthogonal(grid_target)
+
+        self.plotter.add_bounding_box()
+        self.plotter.show_bounds(grid='front', location='outer', all_edges=True)
+        self.plotter.add_axes()
+
+        self.plotter.reset_camera()
+
+        # try expect KeyError
+
+    def ViewModel2(self):
+        self.plotter.clear()
+
+        X, Y, Z = np.meshgrid(self.nodeX, self.nodeY, self.nodeZ)
+        grid = pv.StructuredGrid(X, Y, Z)
+
+        values = self.model_in.reshape((len(self.nodeZ) - 1, len(self.nodeX) - 1, len(self.nodeY) - 1),
+                                       order='F')
+        grid.cell_arrays["values"] = values.flatten(order="C")
+
+        self.plotter.add_mesh(grid,
+                              scalars='values',
+                              opacity=0,
+                              log_scale=True,
+                              show_edges=True)
+
+        grid_target = grid.cast_to_unstructured_grid()
+        ghosts = np.argwhere(grid_target["values"] != 0)
+        grid_target.remove_cells(ghosts)
+        self.plotter.add_mesh(grid_target,
+                              scalars='values',
+                              log_scale=True,
+                              show_edges=True)
+        # self.plotter.add_mesh_threshold(grid)
+
+        # self.plotter.add_mesh_clip_plane(grid)
+        # self.plotter.add_mesh_slice_orthogonal(grid_target)
+
+        self.plotter.add_bounding_box()
+        self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
+        self.plotter.add_axes()
+
+        # grid_target = grid.cast_to_unstructured_grid()
+        # ghosts = np.argwhere(grid_target["values"] == 1.000000000000000e-08)
+        # grid_target.remove_cells(ghosts)
+        # self.plotter.add_mesh(grid_target,
+        #                       scalars='values',
+        #                       opacity=0.1,
+        #                       #   nan_opacity=0,
+        #                       categories=True,
+        #                       log_scale=True,
+        #                       show_edges=True)
+        #
+        # grid_target = grid.cast_to_unstructured_grid()
+        # ghosts = np.argwhere(grid_target["values"] != 1000)
+        # grid_target.remove_cells(ghosts)
+        # self.plotter.add_mesh(grid_target,
+        #                       scalars='values',
+        #                       log_scale=True,
+        #                       # opacity=1,
+        #                       show_edges=True)
+        #
+        # grid_target = grid.cast_to_unstructured_grid()
+        # ghosts = np.argwhere(grid_target["values"] != self.val_out)
+        # grid_target.remove_cells(ghosts)
+        # self.plotter.add_mesh(grid_target,
+        #                     scalars='values',
+        #                     log_scale=True,
+        #                     show_edges=True)
+        # # self.plotter.add_mesh_threshold(grid)
+
+        # self.plotter.add_mesh_clip_plane(grid)
+        # self.plotter.add_mesh_slice_orthogonal(grid_target)
+        self.plotter.reset_camera()
+
+        # try expect KeyError
+
+    def clear(self):
+        self.plotter.clear()
