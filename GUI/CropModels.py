@@ -33,7 +33,7 @@ class CropModelDialog(QDialog, Ui_Dialog):
 
         self.commandLinkBtn_datapath.clicked.connect(self.get_root_path)
         self.commandLinkBtn_outputpath.clicked.connect(self.get_output_path)
-        self.pushButton_export.clicked.connect(self.crop)
+        self.pushButton_crop.clicked.connect(self.crop)
 
     @track_error
     def get_root_path(self):
@@ -122,13 +122,13 @@ class CropModelDialog(QDialog, Ui_Dialog):
                 #                       np.where(indz)[0][0]:np.where(indz)[0][-1]]
                 #
                 # np.save(os.path.join(self.commandLinkBtn_outputpath.text(), 'cropped_model_%05d' % i), cropped_model)
-            QMessageBox.information(self.pushButton_export,
+            QMessageBox.information(self.pushButton_crop,
                                     'Model Cropping',
                                     'Model is cropped.',
                                     QMessageBox.Yes)
 
         except AssertionError:
-            QMessageBox.warning(self.pushButton_export,
+            QMessageBox.warning(self.pushButton_crop,
                                 "Error",
                                 "Pleas set right sub-space!",
                                 QMessageBox.Yes)

@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>855</width>
-     <height>26</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -60,6 +60,7 @@
      <string>Tools</string>
     </property>
     <addaction name="action_Threshold"/>
+    <addaction name="action_Crop"/>
    </widget>
    <widget class="QMenu" name="menuEditor">
     <property name="title">
@@ -173,6 +174,11 @@
   <action name="action_Load">
    <property name="text">
     <string>Load</string>
+   </property>
+  </action>
+  <action name="action_Crop">
+   <property name="text">
+    <string>Crop</string>
    </property>
   </action>
  </widget>

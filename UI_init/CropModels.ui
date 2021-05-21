@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>473</width>
-    <height>313</height>
+    <height>269</height>
    </rect>
   </property>
   <property name="font">
@@ -49,7 +49,7 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="label_savepath">
+      <widget class="QLabel" name="label_outputpath">
        <property name="font">
         <font>
          <family>Times</family>
@@ -264,9 +264,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_export">
+      <widget class="QPushButton" name="pushButton_crop">
        <property name="text">
-        <string>Export</string>
+        <string>Crop</string>
        </property>
       </widget>
      </item>

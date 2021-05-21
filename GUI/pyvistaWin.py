@@ -1,10 +1,13 @@
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QDialog
 from UI_init.Ui_ViewWin import Ui_MainWindow
-from functions.utils import read_mesh_file
+from UI_init.Ui_CropModels import Ui_Dialog
+from functions.utils import read_mesh_file, CellIndex2PointXYZ
 from pyvistaqt import QtInteractor, MainWindow
 
 import numpy as np
 import pyvista as pv
+import os
 
 
 def track_error(func):
@@ -39,6 +42,72 @@ def not_finished_yet(func):
     return wrapper
 
 
+class CropModelDialog(QDialog, Ui_Dialog):
+    signal = QtCore.pyqtSignal(np.ndarray, np.ndarray, np.ndarray, np.ndarray)
+
+    def __init__(self, nodeX, nodeY, nodeZ, model_in):
+        super(CropModelDialog, self).__init__()
+        self.setupUi(self)
+        self.nodeX = nodeX
+        self.nodeY = nodeY
+        self.nodeZ = nodeZ
+        self.model_in = model_in
+
+        self.commandLinkBtn_datapath.setEnabled(False)
+        self.commandLinkBtn_outputpath.setEnabled(False)
+        self.label_datapath.setEnabled(False)
+        self.label_outputpath.setEnabled(False)
+        self.pushButton_crop.clicked.connect(self.crop)
+
+    def crop(self):
+        try:
+            xmin = float(self.lineEdit_Xmin.text())
+            xmax = float(self.lineEdit_Xmax.text())
+            assert self.nodeX[0] < xmin < xmax < self.nodeX[-1]
+
+            ymin = float(self.lineEdit_Ymin.text())
+            ymax = float(self.lineEdit_Ymax.text())
+            assert self.nodeY[0] < ymin < ymax < self.nodeY[-1]
+
+            zmin = float(self.lineEdit_Zmin.text())
+            zmax = float(self.lineEdit_Zmax.text())
+            assert self.nodeZ[-1] < zmin < zmax < self.nodeZ[0]
+
+            indx = (xmin <= self.nodeX) & (xmax >= self.nodeX)
+            indy = (ymin <= self.nodeY) & (ymax >= self.nodeY)
+            indz = (zmin <= self.nodeZ) & (zmax >= self.nodeZ)
+
+            sub_nodeX = self.nodeX[indx]
+            sub_nodeY = self.nodeY[indy]
+            sub_nodeZ = self.nodeZ[indz]
+
+            temp = CellIndex2PointXYZ(self.nodeX, self.nodeY, self.nodeZ, [])
+            x = temp[:, 0]
+            y = temp[:, 1]
+            z = temp[:, 2]
+
+            # original model vector -> cropped model vector (UBC format)
+            cropped_model = np.empty((len(sub_nodeY) - 1, len(sub_nodeX) - 1, len(sub_nodeZ) - 1))
+
+            ind = (x >= sub_nodeX[0]) & (x <= sub_nodeX[-1]) & \
+                  (y >= sub_nodeY[0]) & (y <= sub_nodeY[-1]) & \
+                  (z <= sub_nodeZ[0]) & (z >= sub_nodeZ[-1])
+            cropped_model_v = self.model_in[ind]
+
+            self.signal.emit(sub_nodeX, sub_nodeY, sub_nodeZ, cropped_model_v)
+
+            QMessageBox.information(self.pushButton_crop,
+                                    'Model Cropping',
+                                    'Model is cropped.',
+                                    QMessageBox.Yes)
+
+        except AssertionError:
+            QMessageBox.warning(self.pushButton_crop,
+                                "Error",
+                                "Pleas set right sub-space!",
+                                QMessageBox.Yes)
+
+
 class pyvistaWin(MainWindow, Ui_MainWindow):
     def __init__(self, nodeX, nodeY, nodeZ, model_in):
         super(pyvistaWin, self).__init__()
@@ -47,9 +116,13 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         n_x = len(nodeX) - 1
         n_y = len(nodeY) - 1
         n_z = len(nodeZ) - 1
-        if model_in is None:
+        self.nodeX = nodeX
+        self.nodeY = nodeY
+        self.nodeZ = nodeZ
+        self.model_in = model_in
+        if self.model_in is None:
             self.model_flag = False
-            model_in = np.zeros((n_x * n_y * n_z, 1), dtype=int)
+            self.model_in = np.zeros((n_x * n_y * n_z, 1), dtype=int)
             self.action_Threshold.setEnabled(False)
 
         self.bounding_box_flag = False
@@ -59,8 +132,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.plotter = QtInteractor()
         self.verticalLayout.addWidget(self.plotter.interactor)
 
-        self.grid = self.generate_grid(nodeX, nodeY, nodeZ, model_in)
-        self.view_model()
+
+        self.view_model(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
         # menu File
         self.action_Load.triggered.connect(self.load_mesh_model)
@@ -75,6 +148,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
         # menu Tools
         self.action_Threshold.triggered.connect(self.add_threshold)
+        self.action_Crop.triggered.connect(self.cropping)
         self.signal_close.connect(self.plotter.close)
 
         # Toolbar
@@ -89,12 +163,11 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         if self.mesh_path:
             self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
             if self.model_path:
-                nodeX, nodeY, nodeZ = read_mesh_file(self.mesh_path)
-                model_in = np.loadtxt(self.model_path)
+                self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
+                self.model_in = np.loadtxt(self.model_path)
                 self.model_flag = True
                 self.action_Threshold.setEnabled(True)
-                self.grid = self.generate_grid(nodeX, nodeY, nodeZ, model_in)
-                self.view_model()
+                self.view_model(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     # @track_error_args
     def generate_grid(self, nodeX, nodeY, nodeZ, model_in):
@@ -106,8 +179,9 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
         return grid
 
-    @track_error
-    def view_model(self):
+    @track_error_args
+    def view_model(self, nodeX, nodeY, nodeZ, model_in):
+        self.grid = self.generate_grid(nodeX, nodeY, nodeZ, model_in)
         self.plotter.clear()
         if self.model_flag:
             self.plotter.add_mesh(self.grid,
@@ -141,6 +215,12 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         #                       # log_scale=True,
         #                       # opacity=1,
         #                       show_edges=True)
+
+    @track_error
+    def cropping(self):
+        self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
+        self.crop_win.show()
+        self.crop_win.signal.connect(self.view_model)
 
     @track_error
     def wireframe(self):
