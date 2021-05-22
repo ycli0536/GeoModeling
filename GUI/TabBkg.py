@@ -336,9 +336,10 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
                                         'Do you want to set all edgeCon value at %.f?' % float(self.lineEdit_edgeCon.text()),
                                         QMessageBox.Yes, QMessageBox.No)
         if reply == QMessageBox.Yes:
-            tab_wellpath_points = self.tabWidget_wellpath.currentWidget()
-            edgeCon_ctrl_points = np.ones((tab_wellpath_points.tableWidget.rowCount())) * float(self.lineEdit_edgeCon.text())
-            tab_wellpath_points.points_to_table_column(edgeCon_ctrl_points, 3)
+            for i in range(self.tabWidget_wellpath.count()):
+                current_tab_table = self.tabWidget_wellpath.widget(i)
+                edgeCon_ctrl_points = np.ones((current_tab_table.tableWidget.rowCount())) * float(self.lineEdit_edgeCon.text())
+                current_tab_table.points_to_table_column(edgeCon_ctrl_points, 3)
 
     @track_error
     def save_edgeCon(self):
