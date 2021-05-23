@@ -14,7 +14,7 @@ from functions.rcvsetting import rcvsetting
 
 import os
 import numpy as np
-import shutil
+# import shutil
 from functools import partial
 from scipy.interpolate import griddata
 from pyvistaqt import QtInteractor
@@ -147,9 +147,11 @@ class AddTabSurvey(QTabWidget, Ui_tab_survey):
         self.pushButton_save_rcv.clicked.connect(self.save_rcv_setting)
 
         # View
-        self.plotter = QtInteractor(self.groupBox_viewSurvey)
+        self.plotter = QtInteractor(self.groupBox_View)
         self.verticalLayout_view.addWidget(self.plotter.interactor)
-        self.pushButton_view.clicked.connect(self.view_survey)
+        self.pushButton_viewSurvey.clicked.connect(self.view_survey)
+        self.pushButton_viewWellpaths.clicked.connect(self.view_added_wellpaths)
+        self.pushButton_clearView.clicked.connect(self.clear_view)
 
     @track_error
     def topo_init(self):
@@ -445,12 +447,22 @@ class AddTabSurvey(QTabWidget, Ui_tab_survey):
                                              ['source', 'receiver'])
         src_rcv_select_win.exec()
         if src_rcv_select_win.select_flag:
-            self.plotter.clear()
             src_path = np.loadtxt(src_rcv_select_win.selected_path_left, delimiter=',')
             rcv_path = np.loadtxt(src_rcv_select_win.selected_path_right, delimiter=',')
             self.label_srcfile.setText(src_rcv_select_win.selected_file_left)
             self.label_rcvfile.setText(src_rcv_select_win.selected_file_right)
             self.build_survey(src_path=src_path, rcv_path=rcv_path)
+
+    def view_added_wellpaths(self):
+        wellpath_paths, tmp = QFileDialog.getOpenFileNames(self,
+                                                      "Choose wellpath points files",
+                                                      "*.txt")
+        if wellpath_paths:
+            for i in range(len(wellpath_paths)):
+                wellpath_path = wellpath_paths[i]
+                well_points_o = np.loadtxt(wellpath_path, delimiter=',')
+                well_points = pv.PolyData(well_points_o)
+                self.plotter.add_points(well_points, color='k')
 
     @track_error_args
     def build_survey(self, src_path, rcv_path):
@@ -466,6 +478,9 @@ class AddTabSurvey(QTabWidget, Ui_tab_survey):
         self.plotter.add_mesh(src_line, color='r')
         # self.ViewWidget.add_bounding_box()
         self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
+
+    def clear_view(self):
+        self.plotter.clear()
 
     @track_error_args
     def lines_from_points(self, points):

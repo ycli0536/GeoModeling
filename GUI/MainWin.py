@@ -18,7 +18,6 @@ from GUI.SelectWin import SelectWin
 from GUI.DoubleSelectWin import DoubleSelectWin
 
 from functions.utils import read_mesh_file
-from functions import wellpath2edge
 
 import numpy as np
 import os
@@ -139,6 +138,7 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         self.action_ImportSrc.triggered.connect(self.import_src)
         self.action_ImportRcv.triggered.connect(self.import_rcv)
         self.action_ViewSurvey.triggered.connect(self.view_survey)
+        self.action_View_added_well_paths.triggered.connect(self.view_added_wellpaths)
 
         # Model generation menu
         self.action_SlabGen.triggered.connect(self.slab_random_generation)
@@ -295,10 +295,32 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
 
     @track_error
     def view_survey(self):
-        # open selector dialog
-        self.new_survey()
-        tab_survey = self.tabWidget.currentWidget()
-        tab_survey.view_survey()
+        if self.tabWidget.currentWidget():
+            if self.tabWidget.currentWidget().objectName() == 'tab_survey':
+                tab_survey = self.tabWidget.currentWidget()
+                tab_survey.view_survey()
+            else:
+                self.new_survey()
+                tab_survey = self.tabWidget.currentWidget()
+                tab_survey.view_survey()
+        else:
+            self.new_survey()
+            tab_survey = self.tabWidget.currentWidget()
+            tab_survey.view_survey()
+
+    def view_added_wellpaths(self):
+        if self.tabWidget.currentWidget():
+            if self.tabWidget.currentWidget().objectName() == 'tab_survey':
+                tab_survey = self.tabWidget.currentWidget()
+                tab_survey.view_added_wellpaths()
+            else:
+                self.new_survey()
+                tab_survey = self.tabWidget.currentWidget()
+                tab_survey.view_added_wellpaths()
+        else:
+            self.new_survey()
+            tab_survey = self.tabWidget.currentWidget()
+            tab_survey.view_added_wellpaths()
 
     # --- Model generation menu ---
     @track_error
@@ -350,6 +372,7 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         self.menu_SurveyDesign.setEnabled(False)
         self.action_ImportSrc.setEnabled(False)
         self.action_ImportRcv.setEnabled(False)
+        # self.action_View_added_well_paths.setEnabled(False)
 
         # Model generation menu
         self.menu_ModelGen.setEnabled(False)

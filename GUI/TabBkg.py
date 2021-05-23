@@ -359,18 +359,18 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
 
     # @track_error
     def import_wellpath(self):
-        wellpath_paths = QFileDialog.getOpenFileNames(self,
-                                                      "Choose wellpath points files",
-                                                      "*.txt")
-        if wellpath_paths[0]:
+        wellpath_paths, tmp = QFileDialog.getOpenFileNames(self,
+                                                           "Choose wellpath points files",
+                                                           "*.txt")
+        if wellpath_paths:
             self.tabWidget_wellpath.clear()
             self.lineEdit_int.clear()
             self.lineEdit_Npoints.clear()
             self.lineEdit_int.setEnabled(False)
             self.lineEdit_Npoints.setEnabled(False)
             self.checkBox_edgeCon.setChecked(False)
-            for i in range(len(wellpath_paths[0])):
-                wellpath_path = wellpath_paths[0][i]
+            for i in range(len(wellpath_paths)):
+                wellpath_path = wellpath_paths[i]
                 well_points = np.loadtxt(wellpath_path, delimiter=',')
                 self.add_tab_well_table(well_points.shape[0], os.path.split(wellpath_path)[1])
                 # self.add_tab_well_table(well_points.shape[0], os.path.split(os.path.splitext(wellpath_path)[0])[1])

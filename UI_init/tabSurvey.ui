@@ -71,7 +71,7 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_src" stretch="0,0,1,0">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_topo_src" stretch=""/>
+         <layout class="QHBoxLayout" name="horizontalLayout_topo_src"/>
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout">
@@ -161,7 +161,7 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_rcv" stretch="0,0,1,0">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_topo_rcv" stretch=""/>
+         <layout class="QHBoxLayout" name="horizontalLayout_topo_rcv"/>
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout_2">
@@ -334,7 +334,7 @@
      <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,1">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0,1,0,0">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0,1">
          <item>
           <widget class="QLabel" name="label_3">
            <property name="text">
@@ -376,30 +376,10 @@
            </property>
           </widget>
          </item>
-         <item>
-          <spacer name="horizontalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_view">
-           <property name="text">
-            <string>View Survey</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_viewSurvey">
+        <widget class="QGroupBox" name="groupBox_View">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>1</horstretch>
@@ -413,9 +393,51 @@
           </size>
          </property>
          <property name="title">
-          <string>View Survey</string>
+          <string>View</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_view"/>
+         <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_viewHeader" stretch="1,0,0,0">
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_viewSurvey">
+              <property name="text">
+               <string>View Survey</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_viewWellpaths">
+              <property name="text">
+               <string>View Wellpaths</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_clearView">
+              <property name="text">
+               <string>Clear</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_view"/>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -435,7 +457,6 @@
   <tabstop>lineEdit_rcvYmax</tabstop>
   <tabstop>lineEdit_rcvYint</tabstop>
   <tabstop>pushButton_save_rcv</tabstop>
-  <tabstop>pushButton_view</tabstop>
  </tabstops>
  <resources/>
  <connections/>
