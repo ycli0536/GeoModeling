@@ -128,10 +128,10 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.bounding_box_flag = False
         self.bounds_flag = True
         self.orientation_marker_flag = False
+        self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
         self.plotter = QtInteractor()
         self.verticalLayout.addWidget(self.plotter.interactor)
-
 
         self.view_model(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
@@ -143,6 +143,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_BoundingBox.triggered.connect(self.bounding_box)
         self.action_Bounds.triggered.connect(self.bounds)
         self.action_Orientation_Marker.triggered.connect(self.show_all_marker)
+        self.action_log.triggered.connect(self.log_scalar)
 
         self.action_Clear.triggered.connect(self.clear)
 
@@ -150,6 +151,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_Threshold.triggered.connect(self.add_threshold)
         self.action_Crop.triggered.connect(self.cropping)
         self.signal_close.connect(self.plotter.close)
+        self.signal_close.connect(self.crop_win.close)
 
         # Toolbar
         self.action_XOYview.triggered.connect(self.set_xoy_view)
@@ -168,24 +170,18 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.model_flag = True
                 self.action_Threshold.setEnabled(True)
                 self.view_model(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
-
-    # @track_error_args
-    def generate_grid(self, nodeX, nodeY, nodeZ, model_in):
-        xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
-        grid = pv.StructuredGrid(xx, yy, zz)
-        values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
-                                  order='F')
-        grid.cell_arrays["values"] = values.flatten(order="C")
-
-        return grid
+                self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error_args
     def view_model(self, nodeX, nodeY, nodeZ, model_in):
-        self.grid = self.generate_grid(nodeX, nodeY, nodeZ, model_in)
+        xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
+        self.grid = pv.StructuredGrid(xx, yy, zz)
+        values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
+                                  order='F')
+        self.grid.cell_arrays["values"] = values.flatten(order="C")
         self.plotter.clear()
         if self.model_flag:
             self.plotter.add_mesh(self.grid,
-                                  # style='wireframe',
                                   scalars='values',
                                   show_edges=True)
         else:
@@ -217,8 +213,15 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         #                       show_edges=True)
 
     @track_error
+    def log_scalar(self):
+        self.plotter.clear()
+        self.plotter.add_mesh(self.grid,
+                              scalars='values',
+                              log_scale=True,
+                              show_edges=True)
+
+    @track_error
     def cropping(self):
-        self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
         self.crop_win.show()
         self.crop_win.signal.connect(self.view_model)
 

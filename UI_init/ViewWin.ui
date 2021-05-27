@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>855</width>
-     <height>23</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -47,9 +47,17 @@
      <addaction name="action_BoundingBox"/>
      <addaction name="action_Bounds"/>
     </widget>
+    <widget class="QMenu" name="menuScalars">
+     <property name="title">
+      <string>Scalars</string>
+     </property>
+     <addaction name="action_log"/>
+     <addaction name="action_normal"/>
+    </widget>
     <addaction name="action_Wireframe"/>
     <addaction name="menu_Bounds"/>
     <addaction name="action_Orientation_Marker"/>
+    <addaction name="menuScalars"/>
     <addaction name="separator"/>
     <addaction name="action_Camera"/>
     <addaction name="separator"/>
@@ -179,6 +187,16 @@
   <action name="action_Crop">
    <property name="text">
     <string>Crop</string>
+   </property>
+  </action>
+  <action name="action_log">
+   <property name="text">
+    <string>log</string>
+   </property>
+  </action>
+  <action name="action_normal">
+   <property name="text">
+    <string>normal</string>
    </property>
   </action>
  </widget>
