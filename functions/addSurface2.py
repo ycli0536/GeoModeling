@@ -60,13 +60,14 @@ def addSurface2(nodeX, nodeY, nodeZ, model_in, sfLocInfo, val_out, normal):
         # yLoc = np.repeat(yq.flatten(), len(ycenter))
         ind = (y - yLoc) <= 0
         model_out[ind] = val_out
-        # YOZ surface
-        if normal == 'x':
-            yq, zq = np.meshgrid(ycenter, zcenter)
-            xq = griddata((sfLocInfo[:, 1], sfLocInfo[:, 2]), sfLocInfo[:, 0],
-                          (yq, zq), method='linear', fill_value=np.nan)
+    # YOZ surface
+    if normal == 'x':
+        yq, zq = np.meshgrid(ycenter, zcenter)
+        xq = griddata((sfLocInfo[:, 1], sfLocInfo[:, 2]), sfLocInfo[:, 0],
+                      (yq, zq), method='linear', fill_value=np.nan)
 
-            xLoc = np.repeat(xq.flatten(), len(xcenter))
-            ind = (x - xLoc) <= 0
-            model_out[ind] = val_out
+        xLoc = np.expand_dims(xq.T, 0).repeat(len(xcenter), axis=1).flatten()
+        # xLoc = np.repeat(xq.flatten(), len(xcenter))
+        ind = (x - xLoc) <= 0
+        model_out[ind] = val_out
     return model_out
