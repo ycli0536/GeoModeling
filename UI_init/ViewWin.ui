@@ -54,6 +54,13 @@
      <addaction name="action_log"/>
      <addaction name="action_normal"/>
     </widget>
+    <widget class="QMenu" name="menu_Display">
+     <property name="title">
+      <string>Display Format</string>
+     </property>
+    </widget>
+    <addaction name="menu_Display"/>
+    <addaction name="separator"/>
     <addaction name="action_Wireframe"/>
     <addaction name="menu_Bounds"/>
     <addaction name="action_Orientation_Marker"/>
@@ -107,9 +114,12 @@
    <addaction name="action_XOZview"/>
    <addaction name="action_XOYview"/>
    <addaction name="action_YOZview"/>
+   <addaction name="action_Isometric"/>
+   <addaction name="separator"/>
    <addaction name="action_Wireframe"/>
    <addaction name="separator"/>
-   <addaction name="action_Isometric"/>
+   <addaction name="action_PyVista"/>
+   <addaction name="action_UBC"/>
   </widget>
   <action name="action_Clear">
    <property name="text">
@@ -209,6 +219,16 @@
   <action name="action_AddPoints">
    <property name="text">
     <string>Points</string>
+   </property>
+  </action>
+  <action name="action_PyVista">
+   <property name="text">
+    <string>PyVista</string>
+   </property>
+  </action>
+  <action name="action_UBC">
+   <property name="text">
+    <string>UBC</string>
    </property>
   </action>
  </widget>

@@ -381,7 +381,8 @@ class AddSlabDialog(QDialog, SlabDialog):
                                 "Please view the model after adding a slab!",
                                 QMessageBox.Yes)
         else:
-            self.ViewWin = pyvistaWin(self.nodeX, self.nodeY, self.nodeZ, self.model_out)
+            self.ViewWin = pyvistaWin()
+            self.ViewWin.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_out)
             self.ViewWin.show()
             # try expect KeyError
 
@@ -825,8 +826,8 @@ class AddRandomEllipsoidDialog(QDialog, RandomEllipsoidDialog):
         random_ellipsoid_view_win.exec()
         if random_ellipsoid_view_win.select_flag:
             model_in = np.loadtxt(random_ellipsoid_view_win.selected_path)
-            self.showWin = pyvistaWin(nodeX=self.nodeX, nodeY=self.nodeY, nodeZ=self.nodeZ,
-                                      model_in=model_in)
+            self.showWin = pyvistaWin()
+            self.showWin.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, model_in)
             self.showWin.show()
 
 
@@ -1066,6 +1067,6 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
         random_slab_view_win.exec()
         if random_slab_view_win.select_flag:
             model_in = np.loadtxt(random_slab_view_win.selected_path)
-            self.showWin = pyvistaWin(nodeX=self.nodeX, nodeY=self.nodeY, nodeZ=self.nodeZ,
-                                      model_in=model_in)
+            self.showWin = pyvistaWin()
+            self.showWin.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, model_in)
             self.showWin.show()

@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtWidgets import QComboBox, QLabel
-from PyQt5.QtWidgets import QFileSystemModel, QFileDialog, QDialog, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog, QMessageBox
+from PyQt5.QtWidgets import QLabel, QFileSystemModel
 from PyQt5 import QtCore
 
 from UI_init.Ui_MainWin import Ui_MainWindow
@@ -109,6 +108,8 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
                         ['Wellpath']
                         ]
 
+        self.win_list = []
+
         self.initial_interface()
 
         self.tabWidget.tabCloseRequested.connect(self.tab_close)
@@ -119,6 +120,7 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         self.action_OpenProject.triggered.connect(self.open_project)
         self.action_Export.triggered.connect(self.export)
         self.action_CropModels.triggered.connect(self.crop_model)
+        self.action_ViewModels.triggered.connect(self.view_win)
 
         # Mesh menu
         self.action_NewMesh.triggered.connect(self.new_mesh)
@@ -190,6 +192,12 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         crop_win = CropModelDialog()
         crop_win.exec()
 
+    @track_error
+    def view_win(self):
+        self.win_list.append(pyvistaWin())
+        # self.mesh_view_win = pyvistaWin()
+        self.win_list[-1].show()
+
     # --- Mesh menu ---
     @track_error
     def new_mesh(self):
@@ -212,7 +220,8 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         if mesh_select_win.select_flag:
             nodeX, nodeY, nodeZ = read_mesh_file(mesh_select_win.selected_path)
 
-            self.mesh_view_win = pyvistaWin(nodeX, nodeY, nodeZ, None)
+            self.mesh_view_win = pyvistaWin()
+            self.mesh_view_win.view_model_pyvista(nodeX, nodeY, nodeZ, None)
             self.mesh_view_win.show()
 
     @track_error
@@ -263,7 +272,8 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         if mesh_model_select_win.select_flag:
             nodeX, nodeY, nodeZ = read_mesh_file(mesh_model_select_win.selected_path_left)
             model_in = np.loadtxt(mesh_model_select_win.selected_path_right)
-            self.mesh_view_win = pyvistaWin(nodeX, nodeY, nodeZ, model_in)
+            self.mesh_view_win = pyvistaWin()
+            self.mesh_view_win.view_model_pyvista(nodeX, nodeY, nodeZ, model_in)
             self.mesh_view_win.show()
 
     # --- Survey design menu ---

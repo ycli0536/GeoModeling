@@ -109,36 +109,24 @@ class CropModelDialog(QDialog, Ui_Dialog):
 
 
 class pyvistaWin(MainWindow, Ui_MainWindow):
-    def __init__(self, nodeX, nodeY, nodeZ, model_in):
+    def __init__(self):
         super(pyvistaWin, self).__init__()
         self.setupUi(self)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.model_flag = True
-        n_x = len(nodeX) - 1
-        n_y = len(nodeY) - 1
-        n_z = len(nodeZ) - 1
-        self.nodeX = nodeX
-        self.nodeY = nodeY
-        self.nodeZ = nodeZ
-        self.model_in = model_in
-        if self.model_in is None:
-            self.model_flag = False
-            self.model_in = np.zeros((n_x * n_y * n_z, 1), dtype=int)
-            self.action_Threshold.setEnabled(False)
-
         self.bounding_box_flag = False
         self.bounds_flag = True
         self.orientation_marker_flag = False
-        self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
         self.plotter = QtInteractor()
         self.verticalLayout.addWidget(self.plotter.interactor)
-
-        self.view_model(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
         # menu File
         self.action_Load.triggered.connect(self.load_mesh_model)
 
         # menu View
+        self.action_PyVista.triggered.connect(self.display_model_pyvista)
+        self.action_UBC.triggered.connect(self.display_model_ubc)
         self.action_Wireframe.triggered.connect(self.wireframe)
         self.action_BoundingBox.triggered.connect(self.bounding_box)
         self.action_Bounds.triggered.connect(self.bounds)
@@ -151,7 +139,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_Threshold.triggered.connect(self.add_threshold)
         self.action_Crop.triggered.connect(self.cropping)
         self.signal_close.connect(self.plotter.close)
-        self.signal_close.connect(self.crop_win.close)
+        # self.signal_close.connect(self.crop_win.close)
 
         # menu Add
         self.action_AddPoints.triggered.connect(self.add_points)
@@ -161,6 +149,20 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_XOZview.triggered.connect(self.set_xoz_view)
         self.action_YOZview.triggered.connect(self.set_yoz_view)
         self.action_Isometric.triggered.connect(self.set_view_isometric)
+
+    @track_error_args
+    def set_mesh_model(self, nodeX, nodeY, nodeZ, model_in):
+        n_x = len(nodeX) - 1
+        n_y = len(nodeY) - 1
+        n_z = len(nodeZ) - 1
+        self.nodeX = nodeX
+        self.nodeY = nodeY
+        self.nodeZ = nodeZ
+        self.model_in = model_in
+        if self.model_in is None:
+            self.model_flag = False
+            self.model_in = np.zeros((n_x * n_y * n_z, 1), dtype=int)
+            self.action_Threshold.setEnabled(False)
 
     @track_error
     def load_mesh_model(self):
@@ -172,16 +174,43 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.model_in = np.loadtxt(self.model_path)
                 self.model_flag = True
                 self.action_Threshold.setEnabled(True)
-                self.view_model(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
+                self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
                 self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
+    @track_error
+    def display_model_pyvista(self):
+        self.plotter.clear()
+        self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
+
+    @track_error
+    def display_model_ubc(self):
+        self.plotter.clear()
+        self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
+
     @track_error_args
-    def view_model(self, nodeX, nodeY, nodeZ, model_in):
+    def view_model_pyvista(self, nodeX, nodeY, nodeZ, model_in):
+        self.set_mesh_model(nodeX, nodeY, nodeZ, model_in)
         xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
         self.grid = pv.StructuredGrid(xx, yy, zz)
         values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
                                   order='F')
         self.grid.cell_arrays["values"] = values.flatten(order="C")
+        self.plotter.clear()
+        if self.model_flag:
+            self.plotter.add_mesh(self.grid,
+                                  scalars='values',
+                                  show_edges=True)
+        else:
+            self.plotter.add_mesh(self.grid,
+                                  style='wireframe')
+        self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
+
+    @track_error_args
+    def view_model_ubc(self, nodeX, nodeY, nodeZ, model_in):
+        self.set_mesh_model(nodeX, nodeY, nodeZ, model_in)
+        xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
+        self.grid = pv.StructuredGrid(xx, yy, zz)
+        self.grid.cell_arrays["values"] = model_in
         self.plotter.clear()
         if self.model_flag:
             self.plotter.add_mesh(self.grid,
@@ -237,7 +266,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     @track_error
     def cropping(self):
         self.crop_win.show()
-        self.crop_win.signal.connect(self.view_model)
+        self.crop_win.signal.connect(self.view_model_pyvista)
 
     @track_error
     def wireframe(self):

@@ -76,6 +76,8 @@
     <addaction name="action_Export"/>
     <addaction name="action_CropModels"/>
     <addaction name="separator"/>
+    <addaction name="action_ViewModels"/>
+    <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
    <widget class="QMenu" name="menu_Mesh">
@@ -299,6 +301,11 @@
   <action name="action_View_added_well_paths">
    <property name="text">
     <string>Add well paths</string>
+   </property>
+  </action>
+  <action name="action_ViewModels">
+   <property name="text">
+    <string>View Models</string>
    </property>
   </action>
  </widget>
