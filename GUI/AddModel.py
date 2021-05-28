@@ -73,15 +73,34 @@ class GenerationWorker(QtCore.QObject):
                 break
             self.on_each_loop_end_signal.emit(i)
 
+        config_filename = 'config.txt'
+        config_dir = os.path.join(project_dir, config_filename)
+        with open(config_dir, 'w') as writer:
+            writer.write('ID, VAL, CENTER_X, CENTER_Y, CENTER_Z, R_ALPHA, R_BETA, R_THETA')
+            writer.write('AXIS_X, AXIS_Y, AXIS_Z\n')
+            for sample_id in range(len(val_set)):
+                writer.write('%d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n'
+                             % (sample_id + 1,
+                                val_set[sample_id],
+                                centerX_set[sample_id],
+                                centerY_set[sample_id],
+                                centerZ_set[sample_id],
+                                R_alpha_set[sample_id],
+                                R_beta_set[sample_id],
+                                R_theta_set[sample_id],
+                                a_xis_set[sample_id],
+                                b_xis_set[sample_id],
+                                c_xis_set[sample_id]))
+
         self.finish_random_gen.emit()
 
     @track_error_args
     def slab_random_gen(self, project_dir, model_count, normal,
-                             nodeX, nodeY, nodeZ, model_in,
-                             ControlLength_Set,
-                             SlabcenterX_Set, SlabcenterY_Set, SlabcenterZ_Set,
-                             SlabRalpha_Set, SlabRbeta_Set, SlabRtheta_Set,
-                             SlabVal_Set, SlabTh_Set):
+                        nodeX, nodeY, nodeZ, model_in,
+                        ControlLength_Set,
+                        SlabcenterX_Set, SlabcenterY_Set, SlabcenterZ_Set,
+                        SlabRalpha_Set, SlabRbeta_Set, SlabRtheta_Set,
+                        SlabVal_Set, SlabTh_Set):
         self.start_random_gen.emit()
         for i in range(model_count):
             # save as ...
@@ -101,6 +120,31 @@ class GenerationWorker(QtCore.QObject):
                 self.no_dir_signal.emit()
                 break
             self.on_each_loop_end_signal.emit(i)
+
+        config_filename = 'config.txt'
+        config_dir = os.path.join(project_dir, config_filename)
+        with open(config_dir, 'w') as writer:
+            writer.write('ID, THICKNESS, VAL, CENTER_X, CENTER_Y, CENTER_Z, R_ALPHA, R_BETA, R_THETA')
+            writer.write('LEN_0, LEN_45, LEN_90, LEN_135, LEN_180, LEN_225, LEN_270, LEN_315\n')
+            for sample_id in range(len(SlabVal_Set)):
+                writer.write('%d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n'
+                             % (sample_id + 1,
+                                SlabTh_Set[sample_id],
+                                SlabVal_Set[sample_id],
+                                SlabcenterX_Set[sample_id],
+                                SlabcenterY_Set[sample_id],
+                                SlabcenterZ_Set[sample_id],
+                                SlabRalpha_Set[sample_id],
+                                SlabRbeta_Set[sample_id],
+                                SlabRtheta_Set[sample_id],
+                                ControlLength_Set[0, sample_id],
+                                ControlLength_Set[1, sample_id],
+                                ControlLength_Set[2, sample_id],
+                                ControlLength_Set[3, sample_id],
+                                ControlLength_Set[4, sample_id],
+                                ControlLength_Set[5, sample_id],
+                                ControlLength_Set[6, sample_id],
+                                ControlLength_Set[7, sample_id]))
 
         self.finish_random_gen.emit()
 
@@ -167,17 +211,17 @@ class AddSlabDialog(QDialog, SlabDialog):
         self.label_project.setText('Current Project: ' + self.project_dir.split('/')[-1])
         self.pushBtn_SaveModel.setEnabled(False)
         self.pushBtn_View.setEnabled(False)
-        self.normal = 'y'
+        self.normal = 'x'
 
         # for debugging
-        self.lineEdit_SlabcenterX.setText('0')
-        self.lineEdit_SlabcenterY.setText('100')
-        self.lineEdit_SlabcenterZ.setText('-100')
+        self.lineEdit_SlabcenterX.setText('79500')
+        self.lineEdit_SlabcenterY.setText('3560')
+        self.lineEdit_SlabcenterZ.setText('-2000')
         self.lineEdit_SlabRalpha.setText('0')
         self.lineEdit_SlabRbeta.setText('0')
         self.lineEdit_SlabRtheta.setText('0')
         self.lineEdit_th.setText('200')
-        self.lineEdit_val.setText('5')
+        self.lineEdit_val.setText('100')
         self.lineEdit_Yp.setText('200')
         self.lineEdit_Yn.setText('500')
         self.lineEdit_Xp.setText('500')
@@ -279,7 +323,7 @@ class AddSlabDialog(QDialog, SlabDialog):
                           np.cos(self.Slabbeta) * np.cos(self.Slabalpha)]
                          ]
 
-    # @track_error
+    @track_error
     def add_slab(self):
         # try:
         self.val = float(self.lineEdit_val.text())
@@ -528,15 +572,19 @@ class AddEllipsoidDialog(QDialog, EllipsoidDialog):
                                 "Please fill all necessary parameters!",
                                 QMessageBox.Yes)
 
+    @track_error
     def load_model(self):
         AddSlabDialog.load_model(self)
 
+    @track_error
     def load_mesh(self):
         AddSlabDialog.load_mesh(self)
 
+    @track_error
     def viewEllipsoid(self):
         AddSlabDialog.viewSlab(self)
 
+    @track_error
     def save_model(self):
         AddSlabDialog.save_model(self)
 
@@ -739,13 +787,16 @@ class AddRandomEllipsoidDialog(QDialog, RandomEllipsoidDialog):
                                 "Please fill all necessary parameters!",
                                 QMessageBox.Yes)
 
+    @track_error
     def show_gen_progress(self):
         self.gen_progress = ProgressWin()
         self.gen_progress.exec()
 
+    @track_error_args
     def update_gen_progress(self, i):
         self.gen_progress.progressBar.setValue(int((i + 1) / int(self.model_count) * 100))
 
+    @track_error
     def gen_finished(self):
         self.gen_progress.close()
         QMessageBox.information(self.pushBtn_Gen,
@@ -753,15 +804,18 @@ class AddRandomEllipsoidDialog(QDialog, RandomEllipsoidDialog):
                                 "Ellipsoid models generated",
                                 QMessageBox.Yes)
 
+    @track_error
     def no_dir(self):
         QMessageBox.critical(self.pushBtn_Gen, 'Error',
                              'Please use right path!',
                              QMessageBox.Yes)
 
+    @track_error
     def load_model(self):
         # open selector dialog
         AddEllipsoidDialog.load_model(self)
 
+    @track_error
     def load_mesh(self):
         AddEllipsoidDialog.load_mesh(self)
 
@@ -783,7 +837,7 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
         self.project_dir = path
         self.label_project.setText('Current Project: ' + self.project_dir.split('/')[-1])
         self.pushBtn_View.setEnabled(False)
-        self.normal = 'y'
+        self.normal = 'x'
 
         # for debugging
         self.lineEdit_count.setText('3')
@@ -972,14 +1026,18 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
                                 "Please fill all necessary parameters!",
                                 QMessageBox.Yes)
 
+    @track_error
     def show_gen_progress(self):
         self.gen_progress = ProgressWin()
-        self.gen_progress.open()
-        self.gen_progress.finished.connect(self.gen_finished)
+        self.gen_progress.exec()
+        # self.gen_progress.open()
+        # self.gen_progress.finished.connect(self.gen_finished)
 
+    @track_error_args
     def update_gen_progress(self, i):
         self.gen_progress.progressBar.setValue(int((i + 1) / int(self.model_count) * 100))
 
+    @track_error
     def gen_finished(self):
         self.gen_progress.close()
         QMessageBox.information(self.pushBtn_Gen,
@@ -987,15 +1045,18 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
                                 "Slab models generated",
                                 QMessageBox.Yes)
 
+    @track_error
     def no_dir(self):
         QMessageBox.critical(self.pushBtn_Gen, 'Error',
                              'Please use right path!',
                              QMessageBox.Yes)
 
+    @track_error
     def load_model(self):
         # open selector dialog
         AddSlabDialog.load_model(self)
 
+    @track_error
     def load_mesh(self):
         AddSlabDialog.load_mesh(self)
 
