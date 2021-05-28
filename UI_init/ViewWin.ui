@@ -75,10 +75,17 @@
      <string>Editor</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuAdd">
+    <property name="title">
+     <string>Add</string>
+    </property>
+    <addaction name="action_AddPoints"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuTools"/>
    <addaction name="menuEditor"/>
+   <addaction name="menuAdd"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -197,6 +204,11 @@
   <action name="action_normal">
    <property name="text">
     <string>normal</string>
+   </property>
+  </action>
+  <action name="action_AddPoints">
+   <property name="text">
+    <string>Points</string>
    </property>
   </action>
  </widget>

@@ -153,6 +153,9 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.signal_close.connect(self.plotter.close)
         self.signal_close.connect(self.crop_win.close)
 
+        # menu Add
+        self.action_AddPoints.triggered.connect(self.add_points)
+
         # Toolbar
         self.action_XOYview.triggered.connect(self.set_xoy_view)
         self.action_XOZview.triggered.connect(self.set_xoz_view)
@@ -188,6 +191,17 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
         self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
+
+    def add_points(self):
+        points_paths, _ = QFileDialog.getOpenFileNames(self,
+                                                       "Choose points files",
+                                                       "*.txt")
+        if points_paths:
+            for i in range(len(points_paths)):
+                points_path = points_paths[i]
+                points_o = np.loadtxt(points_path, delimiter=',')
+                points = pv.PolyData(points_o)
+                self.plotter.add_points(points, color='k')
 
     @track_error
     def add_threshold(self):
