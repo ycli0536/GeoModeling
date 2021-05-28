@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox, QFileDialog
 
 from UI_init.Ui_CropModels import Ui_Dialog
 from functions.utils import CellIndex2PointXYZ
+from functions.utils import write_mesh_file
 
 import os
 import numpy as np
@@ -45,19 +46,20 @@ class CropModelDialog(QDialog, Ui_Dialog):
 
     @track_error
     def get_output_path(self):
-        self.outputpath = QFileDialog.getExistingDirectory(self,
-                                                           "Select a folder",
-                                                           "./")
-        if self.outputpath:
-            outputpath = os.path.join(self.outputpath, "output")
-            if os.path.exists(outputpath):
-                shutil.rmtree(outputpath)
-            os.mkdir(outputpath)
+        self.output_folder = QFileDialog.getExistingDirectory(self,
+                                                              "Select a folder",
+                                                              "./")
+        if self.output_folder:
+            outputpath = os.path.join(self.output_folder, 'output')
             self.commandLinkBtn_outputpath.setText(outputpath)
 
     @track_error
     def crop(self):
         try:
+            if os.path.exists(self.commandLinkBtn_outputpath.text()):
+                shutil.rmtree(self.commandLinkBtn_outputpath.text())
+            os.mkdir(self.commandLinkBtn_outputpath.text())
+
             subfolders = os.listdir(self.commandLinkBtn_datapath.text())
             nodeX = np.loadtxt(os.path.join(self.rootpath, *[subfolders[0], 'nodeX.txt']))
             nodeY = np.loadtxt(os.path.join(self.rootpath, *[subfolders[0], 'nodeY.txt']))
@@ -82,6 +84,12 @@ class CropModelDialog(QDialog, Ui_Dialog):
             sub_nodeX = nodeX[indx]
             sub_nodeY = nodeY[indy]
             sub_nodeZ = nodeZ[indz]
+
+            sub_mesh_path = os.path.join(self.commandLinkBtn_outputpath.text(), 'sub_mesh.txt')
+            write_mesh_file(mesh_path=sub_mesh_path,
+                            nodeX=sub_nodeX,
+                            nodeY=sub_nodeY,
+                            nodeZ=sub_nodeZ)
 
             temp = CellIndex2PointXYZ(nodeX, nodeY, nodeZ, [])
             x = temp[:, 0]
@@ -124,7 +132,9 @@ class CropModelDialog(QDialog, Ui_Dialog):
                 # np.save(os.path.join(self.commandLinkBtn_outputpath.text(), 'cropped_model_%05d' % i), cropped_model)
             QMessageBox.information(self.pushButton_crop,
                                     'Model Cropping',
-                                    'Model is cropped.',
+                                    'Model (%d*%d*%d [YXZ]) is cropped.' % (len(sub_nodeY) - 1,
+                                                                            len(sub_nodeX) - 1,
+                                                                            len(sub_nodeZ) - 1),
                                     QMessageBox.Yes)
 
         except AssertionError:
