@@ -455,8 +455,8 @@ class AddTabSurvey(QTabWidget, Ui_tab_survey):
 
     def view_added_wellpaths(self):
         wellpath_paths, tmp = QFileDialog.getOpenFileNames(self,
-                                                      "Choose wellpath points files",
-                                                      "*.txt")
+                                                           "Choose wellpath points files",
+                                                           "*.txt")
         if wellpath_paths:
             for i in range(len(wellpath_paths)):
                 wellpath_path = wellpath_paths[i]
