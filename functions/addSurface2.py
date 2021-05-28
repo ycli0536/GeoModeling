@@ -55,8 +55,9 @@ def addSurface2(nodeX, nodeY, nodeZ, model_in, sfLocInfo, val_out, normal):
         xq, zq = np.meshgrid(xcenter, zcenter)
         yq = griddata((sfLocInfo[:, 0], sfLocInfo[:, 2]), sfLocInfo[:, 1],
                       (xq, zq), method='linear', fill_value=np.nan)
+        yq1 = np.flipud(yq)
 
-        yLoc = np.expand_dims(yq.T, 0).repeat(len(ycenter), axis=0).flatten()
+        yLoc = np.expand_dims(yq1.T, 0).repeat(len(ycenter), axis=0).flatten()
         # yLoc = np.repeat(yq.flatten(), len(ycenter))
         ind = (y - yLoc) <= 0
         model_out[ind] = val_out
@@ -65,8 +66,9 @@ def addSurface2(nodeX, nodeY, nodeZ, model_in, sfLocInfo, val_out, normal):
         yq, zq = np.meshgrid(ycenter, zcenter)
         xq = griddata((sfLocInfo[:, 1], sfLocInfo[:, 2]), sfLocInfo[:, 0],
                       (yq, zq), method='linear', fill_value=np.nan)
+        xq1 = np.flipud(xq)
 
-        xLoc = np.expand_dims(xq.T, 0).repeat(len(xcenter), axis=1).flatten()
+        xLoc = np.expand_dims(xq1.T, 1).repeat(len(xcenter), axis=1).flatten()
         # xLoc = np.repeat(xq.flatten(), len(xcenter))
         ind = (x - xLoc) <= 0
         model_out[ind] = val_out
