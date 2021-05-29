@@ -220,7 +220,7 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
     @track_error
     def view_model(self):
         self.model_view_win = pyvistaWin()
-        self.model_view_win.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_out)
+        self.model_view_win.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_out)
         self.model_view_win.show()
 
     @track_error

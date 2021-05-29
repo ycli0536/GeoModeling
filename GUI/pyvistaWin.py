@@ -174,7 +174,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.model_in = np.loadtxt(self.model_path)
                 self.model_flag = True
                 self.action_Threshold.setEnabled(True)
-                self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
+                self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
                 self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
@@ -188,7 +188,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error_args
-    def view_model_pyvista(self, nodeX, nodeY, nodeZ, model_in):
+    def view_model_ubc(self, nodeX, nodeY, nodeZ, model_in):
         self.set_mesh_model(nodeX, nodeY, nodeZ, model_in)
         xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
         self.grid = pv.StructuredGrid(xx, yy, zz)
@@ -206,7 +206,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
 
     @track_error_args
-    def view_model_ubc(self, nodeX, nodeY, nodeZ, model_in):
+    def view_model_pyvista(self, nodeX, nodeY, nodeZ, model_in):
         self.set_mesh_model(nodeX, nodeY, nodeZ, model_in)
         xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
         self.grid = pv.StructuredGrid(xx, yy, zz)
@@ -266,7 +266,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     @track_error
     def cropping(self):
         self.crop_win.show()
-        self.crop_win.signal.connect(self.view_model_pyvista)
+        self.crop_win.signal.connect(self.view_model_ubc)
 
     @track_error
     def wireframe(self):

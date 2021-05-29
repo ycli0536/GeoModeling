@@ -221,7 +221,7 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
             nodeX, nodeY, nodeZ = read_mesh_file(mesh_select_win.selected_path)
 
             self.mesh_view_win = pyvistaWin()
-            self.mesh_view_win.view_model_pyvista(nodeX, nodeY, nodeZ, None)
+            self.mesh_view_win.view_model_ubc(nodeX, nodeY, nodeZ, None)
             self.mesh_view_win.show()
 
     @track_error
@@ -273,7 +273,7 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
             nodeX, nodeY, nodeZ = read_mesh_file(mesh_model_select_win.selected_path_left)
             model_in = np.loadtxt(mesh_model_select_win.selected_path_right)
             self.mesh_view_win = pyvistaWin()
-            self.mesh_view_win.view_model_pyvista(nodeX, nodeY, nodeZ, model_in)
+            self.mesh_view_win.view_model_ubc(nodeX, nodeY, nodeZ, model_in)
             self.mesh_view_win.show()
 
     # --- Survey design menu ---
