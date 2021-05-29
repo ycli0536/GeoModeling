@@ -76,7 +76,7 @@ class GenerationWorker(QtCore.QObject):
         config_filename = 'config.txt'
         config_dir = os.path.join(project_dir, config_filename)
         with open(config_dir, 'w') as writer:
-            writer.write('ID, VAL, CENTER_X, CENTER_Y, CENTER_Z, R_ALPHA, R_BETA, R_THETA')
+            writer.write('ID, VAL, CENTER_X, CENTER_Y, CENTER_Z, R_ALPHA(°), R_BETA(°), R_THETA(°), ')
             writer.write('AXIS_X, AXIS_Y, AXIS_Z\n')
             for sample_id in range(len(val_set)):
                 writer.write('%d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n'
@@ -85,9 +85,9 @@ class GenerationWorker(QtCore.QObject):
                                 centerX_set[sample_id],
                                 centerY_set[sample_id],
                                 centerZ_set[sample_id],
-                                R_alpha_set[sample_id],
-                                R_beta_set[sample_id],
-                                R_theta_set[sample_id],
+                                R_alpha_set[sample_id] * 180 / np.pi,
+                                R_beta_set[sample_id] * 180 / np.pi,
+                                R_theta_set[sample_id] * 180 / np.pi,
                                 a_xis_set[sample_id],
                                 b_xis_set[sample_id],
                                 c_xis_set[sample_id]))
@@ -116,6 +116,22 @@ class GenerationWorker(QtCore.QObject):
                 with open(dir, 'w') as f:
                     for k in range(len(model_out)):
                         f.write(str(float(model_out[k])) + "\n")
+
+                # save sfLocInfo to config_points.txt
+                config_points_filename = 'config_points.txt'
+                config_points_dir = os.path.join(project_dir, config_points_filename)
+                if i == 0:
+                    with open(config_points_dir, 'w') as writer:
+                        writer.write('ID, LOC_DIM1, LOC_DIM2, LOC_DIM3\n')
+                with open(config_points_dir, 'a') as writer:
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[0][0], sfLocInfo[0][1], sfLocInfo[0][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[1][0], sfLocInfo[1][1], sfLocInfo[1][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[2][0], sfLocInfo[2][1], sfLocInfo[2][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[3][0], sfLocInfo[3][1], sfLocInfo[3][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[4][0], sfLocInfo[4][1], sfLocInfo[4][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[5][0], sfLocInfo[5][1], sfLocInfo[5][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[6][0], sfLocInfo[6][1], sfLocInfo[6][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[7][0], sfLocInfo[7][1], sfLocInfo[7][2]))
             else:
                 self.no_dir_signal.emit()
                 break
@@ -124,7 +140,7 @@ class GenerationWorker(QtCore.QObject):
         config_filename = 'config.txt'
         config_dir = os.path.join(project_dir, config_filename)
         with open(config_dir, 'w') as writer:
-            writer.write('ID, THICKNESS, VAL, CENTER_X, CENTER_Y, CENTER_Z, R_ALPHA, R_BETA, R_THETA')
+            writer.write('ID, THICKNESS, VAL, CENTER_X, CENTER_Y, CENTER_Z, R_ALPHA(°), R_BETA(°), R_THETA(°), ')
             writer.write('LEN_0, LEN_45, LEN_90, LEN_135, LEN_180, LEN_225, LEN_270, LEN_315\n')
             for sample_id in range(len(SlabVal_Set)):
                 writer.write('%d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n'
@@ -134,9 +150,9 @@ class GenerationWorker(QtCore.QObject):
                                 SlabcenterX_Set[sample_id],
                                 SlabcenterY_Set[sample_id],
                                 SlabcenterZ_Set[sample_id],
-                                SlabRalpha_Set[sample_id],
-                                SlabRbeta_Set[sample_id],
-                                SlabRtheta_Set[sample_id],
+                                SlabRalpha_Set[sample_id] * 180 / np.pi,
+                                SlabRbeta_Set[sample_id] * 180 / np.pi,
+                                SlabRtheta_Set[sample_id] * 180 / np.pi,
                                 ControlLength_Set[0, sample_id],
                                 ControlLength_Set[1, sample_id],
                                 ControlLength_Set[2, sample_id],
