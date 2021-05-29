@@ -143,6 +143,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
         # menu Add
         self.action_AddPoints.triggered.connect(self.add_points)
+        self.action_AddLines.triggered.connect(self.add_lines)
 
         # Toolbar
         self.action_XOYview.triggered.connect(self.set_xoy_view)
@@ -175,7 +176,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.model_flag = True
                 self.action_Threshold.setEnabled(True)
                 self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
-                self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
+                # self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
     def display_model_pyvista(self):
@@ -221,6 +222,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                                   style='wireframe')
         self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
 
+    @track_error
     def add_points(self):
         points_paths, _ = QFileDialog.getOpenFileNames(self,
                                                        "Choose points files",
@@ -231,6 +233,28 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 points_o = np.loadtxt(points_path, delimiter=',')
                 points = pv.PolyData(points_o)
                 self.plotter.add_points(points, color='k')
+
+    @track_error
+    def add_lines(self):
+        points_paths, _ = QFileDialog.getOpenFileNames(self,
+                                                       "Choose line points files",
+                                                       "*.txt")
+        if points_paths:
+            for i in range(len(points_paths)):
+                points_path = points_paths[i]
+                points = np.loadtxt(points_path, delimiter=',')
+                line = self.lines_from_points(points)
+                self.plotter.add_mesh(line, color='b')
+
+    def lines_from_points(self, points):
+        """Given an array of points, make a line set"""
+        poly = pv.PolyData()
+        poly.points = points
+        cells = np.full((len(points) - 1, 3), 2, dtype=np.int_)
+        cells[:, 1] = np.arange(0, len(points) - 1, dtype=np.int_)
+        cells[:, 2] = np.arange(1, len(points), dtype=np.int_)
+        poly.lines = cells
+        return poly
 
     @track_error
     def add_threshold(self):
@@ -265,6 +289,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     @track_error
     def cropping(self):
+        self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
         self.crop_win.show()
         self.crop_win.signal.connect(self.view_model_ubc)
 

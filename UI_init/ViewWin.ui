@@ -87,6 +87,7 @@
      <string>Add</string>
     </property>
     <addaction name="action_AddPoints"/>
+    <addaction name="action_AddLines"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -229,6 +230,11 @@
   <action name="action_UBC">
    <property name="text">
     <string>UBC</string>
+   </property>
+  </action>
+  <action name="action_AddLines">
+   <property name="text">
+    <string>Lines</string>
    </property>
   </action>
  </widget>
