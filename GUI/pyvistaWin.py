@@ -169,15 +169,17 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     @track_error
     def load_mesh_model(self):
-        self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
-        if self.mesh_path:
-            self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
-            if self.model_path:
-                self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
-                self.model_in = np.loadtxt(self.model_path)
+        mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
+        if mesh_path:
+            model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
+            if model_path:
+                self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(mesh_path)
+                self.model_in = np.loadtxt(model_path)
                 self.action_Threshold.setEnabled(True)
                 self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
                 # self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
+                self.label_MeshPath.setText(mesh_path)
+                self.label_ModelPath.setText(model_path)
 
     @track_error
     def display_model_pyvista(self):

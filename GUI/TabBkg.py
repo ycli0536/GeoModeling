@@ -86,8 +86,9 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
         mesh_select_win = SelectWin(os.path.join(self.project_dir, 'Mesh'), 'mesh')
         mesh_select_win.exec()
         if mesh_select_win.select_flag:
-            self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(mesh_select_win.selected_path)
-            self.lineEdit_meshpath.setText(mesh_select_win.selected_path)
+            self.mesh_path = mesh_select_win.selected_path
+            self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
+            self.lineEdit_meshpath.setText(self.mesh_path)
             self.groupBox_edgeCon.setEnabled(True)
             self.groupBox_CellCon.setEnabled(True)
 
@@ -220,6 +221,7 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
     @track_error
     def view_model(self):
         self.model_view_win = pyvistaWin()
+        self.model_view_win.label_MeshPath.setText(self.mesh_path)
         self.model_view_win.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_out)
         self.model_view_win.show()
 
