@@ -115,7 +115,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.model_flag = True
         self.bounding_box_flag = False
-        self.bounds_flag = True
+        self.bounds_flag = False
+        self.log_flag = False
         self.orientation_marker_flag = False
 
         self.plotter = QtInteractor()
@@ -132,6 +133,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_Bounds.triggered.connect(self.bounds)
         self.action_Orientation_Marker.triggered.connect(self.show_all_marker)
         self.action_log.triggered.connect(self.log_scalar)
+        self.action_normal.triggered.connect(self.normal_scalar)
 
         self.action_Clear.triggered.connect(self.clear)
 
@@ -173,7 +175,6 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             if self.model_path:
                 self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
                 self.model_in = np.loadtxt(self.model_path)
-                self.model_flag = True
                 self.action_Threshold.setEnabled(True)
                 self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
                 # self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
@@ -181,11 +182,13 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     @track_error
     def display_model_pyvista(self):
         self.plotter.clear()
+        # self.plotter.set_background('white')
         self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
     def display_model_ubc(self):
         self.plotter.clear()
+        # self.plotter.set_background('white')
         self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error_args
@@ -204,7 +207,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         else:
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
-        self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
+        self.bounds()
 
     @track_error_args
     def view_model_pyvista(self, nodeX, nodeY, nodeZ, model_in):
@@ -220,7 +223,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         else:
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
-        self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
+        self.bounds()
 
     @track_error
     def add_points(self):
@@ -232,7 +235,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 points_path = points_paths[i]
                 points_o = np.loadtxt(points_path, delimiter=',')
                 points = pv.PolyData(points_o)
-                self.plotter.add_points(points, color='k')
+                self.plotter.add_points(points, color='y', point_size=6)
+            self.bounds()
 
     @track_error
     def add_lines(self):
@@ -243,18 +247,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             for i in range(len(points_paths)):
                 points_path = points_paths[i]
                 points = np.loadtxt(points_path, delimiter=',')
-                line = self.lines_from_points(points)
-                self.plotter.add_mesh(line, color='b')
-
-    def lines_from_points(self, points):
-        """Given an array of points, make a line set"""
-        poly = pv.PolyData()
-        poly.points = points
-        cells = np.full((len(points) - 1, 3), 2, dtype=np.int_)
-        cells[:, 1] = np.arange(0, len(points) - 1, dtype=np.int_)
-        cells[:, 2] = np.arange(1, len(points), dtype=np.int_)
-        poly.lines = cells
-        return poly
+                self.plotter.add_lines(points, color='b')
+            self.bounds()
 
     @track_error
     def add_threshold(self):
@@ -265,8 +259,15 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         # #                       #   nan_opacity=0,
         # #                       categories=True,
         # #                       show_edges=False)
-        self.plotter.add_mesh_threshold(self.grid, invert=False)
-        self.plotter.add_bounding_box()
+        if self.log_flag:
+            self.plotter.add_mesh_threshold(self.grid,
+                                            invert=False,
+                                            log_scale=True)
+        else:
+            self.plotter.add_mesh_threshold(self.grid,
+                                            invert=False)
+        self.bounds_flag = True
+        self.bounds()
 
         # print(type(threshed))
 
@@ -281,11 +282,22 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     @track_error
     def log_scalar(self):
-        self.plotter.clear()
-        self.plotter.add_mesh(self.grid,
-                              scalars='values',
-                              log_scale=True,
-                              show_edges=True)
+        if not self.log_flag:
+            self.plotter.clear()
+            self.plotter.add_mesh(self.grid,
+                                  scalars='values',
+                                  log_scale=True,
+                                  show_edges=True)
+            self.log_flag = True
+
+    @track_error
+    def normal_scalar(self):
+        if self.log_flag:
+            self.plotter.clear()
+            self.plotter.add_mesh(self.grid,
+                                  scalars='values',
+                                  show_edges=True)
+            self.log_flag = False
 
     @track_error
     def cropping(self):
@@ -311,12 +323,11 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     def bounds(self):
         if self.bounds_flag:
-            self.plotter.remove_bounds_axes()
+            self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
             self.bounds_flag = False
         else:
-            self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
+            self.plotter.remove_bounds_axes()
             self.bounds_flag = True
-            # self.plotter.show_bounds()
 
     def show_all_marker(self):
         if self.orientation_marker_flag:
@@ -343,124 +354,6 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         self.plotter.close()
-
-    def ViewModel1(self):
-        self.plotter.clear()
-
-        X, Y, Z = np.meshgrid(self.nodeX, self.nodeY, self.nodeZ)
-        grid = pv.StructuredGrid(X, Y, Z)
-
-        values = self.model_in.reshape((len(self.nodeZ) - 1, len(self.nodeX) - 1, len(self.nodeY) - 1),
-                                       order='F')
-        grid.cell_arrays["values"] = values.flatten(order="C")
-
-        grid_target = grid.cast_to_unstructured_grid()
-        ghosts = np.argwhere(grid_target["values"] == 1.000000000000000e-08)
-        grid_target.remove_cells(ghosts)
-        self.plotter.add_mesh(grid_target,
-                              scalars='values',
-                              opacity=0.3,
-                              #   nan_opacity=0,
-                              categories=True,
-                              log_scale=True,
-                              show_edges=False)
-
-        # grid_target = grid.cast_to_unstructured_grid()
-        # ghosts = np.argwhere(grid_target["values"] != 1000)
-        # grid_target.remove_cells(ghosts)
-        # self.plotter.add_mesh(grid_target,
-        #                       scalars='values',
-        #                       log_scale=True,
-        #                       # opacity=1,
-        #                       show_edges=True)
-
-        # grid_target = grid.cast_to_unstructured_grid()
-        # ghosts = np.argwhere(grid_target["values"] != self.val)
-        # grid_target.remove_cells(ghosts)
-        # self.plotter.add_mesh(grid_target,
-        #                       scalars='values',
-        #                       log_scale=True,
-        #                       show_edges=True)
-
-        # self.plotter.add_mesh_threshold(grid)
-
-        # self.plotter.add_mesh_clip_plane(grid)
-        # self.plotter.add_mesh_slice_orthogonal(grid_target)
-
-        self.plotter.add_bounding_box()
-        self.plotter.show_bounds(grid='front', location='outer', all_edges=True)
-        self.plotter.add_axes()
-
-        self.plotter.reset_camera()
-
-        # try expect KeyError
-
-    def ViewModel2(self):
-        self.plotter.clear()
-
-        X, Y, Z = np.meshgrid(self.nodeX, self.nodeY, self.nodeZ)
-        grid = pv.StructuredGrid(X, Y, Z)
-
-        values = self.model_in.reshape((len(self.nodeZ) - 1, len(self.nodeX) - 1, len(self.nodeY) - 1),
-                                       order='F')
-        grid.cell_arrays["values"] = values.flatten(order="C")
-
-        self.plotter.add_mesh(grid,
-                              scalars='values',
-                              opacity=0,
-                              log_scale=True,
-                              show_edges=True)
-
-        grid_target = grid.cast_to_unstructured_grid()
-        ghosts = np.argwhere(grid_target["values"] != 0)
-        grid_target.remove_cells(ghosts)
-        self.plotter.add_mesh(grid_target,
-                              scalars='values',
-                              log_scale=True,
-                              show_edges=True)
-        # self.plotter.add_mesh_threshold(grid)
-
-        # self.plotter.add_mesh_clip_plane(grid)
-        # self.plotter.add_mesh_slice_orthogonal(grid_target)
-
-        self.plotter.add_bounding_box()
-        self.plotter.show_bounds(grid='back', location='outer', all_edges=True)
-        self.plotter.add_axes()
-
-        # grid_target = grid.cast_to_unstructured_grid()
-        # ghosts = np.argwhere(grid_target["values"] == 1.000000000000000e-08)
-        # grid_target.remove_cells(ghosts)
-        # self.plotter.add_mesh(grid_target,
-        #                       scalars='values',
-        #                       opacity=0.1,
-        #                       #   nan_opacity=0,
-        #                       categories=True,
-        #                       log_scale=True,
-        #                       show_edges=True)
-        #
-        # grid_target = grid.cast_to_unstructured_grid()
-        # ghosts = np.argwhere(grid_target["values"] != 1000)
-        # grid_target.remove_cells(ghosts)
-        # self.plotter.add_mesh(grid_target,
-        #                       scalars='values',
-        #                       log_scale=True,
-        #                       # opacity=1,
-        #                       show_edges=True)
-        #
-        # grid_target = grid.cast_to_unstructured_grid()
-        # ghosts = np.argwhere(grid_target["values"] != self.val_out)
-        # grid_target.remove_cells(ghosts)
-        # self.plotter.add_mesh(grid_target,
-        #                     scalars='values',
-        #                     log_scale=True,
-        #                     show_edges=True)
-        # # self.plotter.add_mesh_threshold(grid)
-
-        # self.plotter.add_mesh_clip_plane(grid)
-        # self.plotter.add_mesh_slice_orthogonal(grid_target)
-        self.plotter.reset_camera()
-
-        # try expect KeyError
 
     def clear(self):
         self.plotter.clear()

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>855</width>
+    <width>978</width>
     <height>609</height>
    </rect>
   </property>
@@ -25,7 +25,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>855</width>
+     <width>978</width>
      <height>26</height>
     </rect>
    </property>
@@ -58,6 +58,8 @@
      <property name="title">
       <string>Display Format</string>
      </property>
+     <addaction name="action_PyVista"/>
+     <addaction name="action_UBC"/>
     </widget>
     <addaction name="menu_Display"/>
     <addaction name="separator"/>
@@ -117,10 +119,16 @@
    <addaction name="action_YOZview"/>
    <addaction name="action_Isometric"/>
    <addaction name="separator"/>
-   <addaction name="action_Wireframe"/>
+   <addaction name="action_Bounds"/>
    <addaction name="separator"/>
    <addaction name="action_PyVista"/>
    <addaction name="action_UBC"/>
+   <addaction name="separator"/>
+   <addaction name="action_log"/>
+   <addaction name="action_normal"/>
+   <addaction name="separator"/>
+   <addaction name="action_Threshold"/>
+   <addaction name="action_Crop"/>
   </widget>
   <action name="action_Clear">
    <property name="text">
