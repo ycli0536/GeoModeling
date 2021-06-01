@@ -18,13 +18,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0,1">
       <item>
-       <widget class="QLabel" name="label_mesh">
-        <property name="font">
-         <font>
-          <family>Calibri</family>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
+       <widget class="QCommandLinkButton" name="commandLinkButton_mesh">
         <property name="text">
          <string>Mesh file:</string>
         </property>
@@ -54,13 +48,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_model">
-        <property name="font">
-         <font>
-          <family>Calibri</family>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
+       <widget class="QCommandLinkButton" name="commandLinkButton_model">
         <property name="text">
          <string>Model file:</string>
         </property>

@@ -115,7 +115,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.model_flag = True
         self.bounding_box_flag = False
-        self.bounds_flag = False
+        self.bounds_flag = True
         self.log_flag = False
         self.orientation_marker_flag = False
 
@@ -124,6 +124,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
         # menu File
         self.action_Load.triggered.connect(self.load_mesh_model)
+        self.commandLinkButton_mesh.clicked.connect(self.load_mesh)
+        self.commandLinkButton_model.clicked.connect(self.load_model)
 
         # menu View
         self.action_PyVista.triggered.connect(self.display_model_pyvista)
@@ -168,6 +170,22 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.action_Threshold.setEnabled(False)
 
     @track_error
+    def load_mesh(self):
+        mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
+        if mesh_path:
+            self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(mesh_path)
+            self.action_Threshold.setEnabled(True)
+            self.label_MeshPath.setText(mesh_path)
+
+    @track_error
+    def load_model(self):
+        model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
+        if model_path:
+            self.model_in = np.loadtxt(model_path)
+            self.action_Threshold.setEnabled(True)
+            self.label_ModelPath.setText(model_path)
+
+    @track_error
     def load_mesh_model(self):
         mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
         if mesh_path:
@@ -209,6 +227,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         else:
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
+
+        self.bounds_flag = True
         self.bounds()
 
     @track_error_args
@@ -225,6 +245,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         else:
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
+
+        self.bounds_flag = True
         self.bounds()
 
     @track_error
@@ -238,7 +260,6 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 points_o = np.loadtxt(points_path, delimiter=',')
                 points = pv.PolyData(points_o)
                 self.plotter.add_points(points, color='y', point_size=6)
-            self.bounds()
 
     @track_error
     def add_lines(self):
