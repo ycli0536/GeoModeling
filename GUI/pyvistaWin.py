@@ -113,6 +113,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         super(pyvistaWin, self).__init__()
         self.setupUi(self)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.mesh_path = None
+        self.model_path = None
         self.model_flag = True
         self.bounding_box_flag = False
         self.bounds_flag = True
@@ -171,43 +173,50 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     @track_error
     def load_mesh(self):
-        mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
-        if mesh_path:
-            self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(mesh_path)
+        self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
+        if self.mesh_path:
+            self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
             self.action_Threshold.setEnabled(True)
-            self.label_MeshPath.setText(mesh_path)
+            self.label_MeshPath.setText(self.mesh_path)
+        self.build_mesh_model()
 
     @track_error
     def load_model(self):
-        model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
-        if model_path:
-            self.model_in = np.loadtxt(model_path)
+        self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
+        if self.model_path:
+            self.model_in = np.loadtxt(self.model_path)
             self.action_Threshold.setEnabled(True)
-            self.label_ModelPath.setText(model_path)
+            self.label_ModelPath.setText(self.model_path)
+        self.build_mesh_model()
+            
+    @track_error
+    def build_mesh_model(self):
+        if self.model_path and self.mesh_path:
+            self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
     def load_mesh_model(self):
-        mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
-        if mesh_path:
-            model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
-            if model_path:
-                self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(mesh_path)
-                self.model_in = np.loadtxt(model_path)
+        self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
+        if self.mesh_path:
+            self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
+            if self.model_path:
+                self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
+                self.model_in = np.loadtxt(self.model_path)
                 self.action_Threshold.setEnabled(True)
                 self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
                 # self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
-                self.label_MeshPath.setText(mesh_path)
-                self.label_ModelPath.setText(model_path)
+                self.label_MeshPath.setText(self.mesh_path)
+                self.label_ModelPath.setText(self.model_path)
 
     @track_error
     def display_model_pyvista(self):
-        self.plotter.clear()
+        # self.plotter.clear()
         # self.plotter.set_background('white')
         self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
     def display_model_ubc(self):
-        self.plotter.clear()
+        # self.plotter.clear()
         # self.plotter.set_background('white')
         self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
