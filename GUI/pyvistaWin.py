@@ -116,6 +116,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.mesh_path = None
         self.model_path = None
         self.model_flag = True
+        self.model_in = None
         self.bounding_box_flag = False
         self.bounds_flag = True
         self.log_flag = False
@@ -157,42 +158,28 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_YOZview.triggered.connect(self.set_yoz_view)
         self.action_Isometric.triggered.connect(self.set_view_isometric)
 
-    @track_error_args
-    def set_mesh_model(self, nodeX, nodeY, nodeZ, model_in):
-        n_x = len(nodeX) - 1
-        n_y = len(nodeY) - 1
-        n_z = len(nodeZ) - 1
-        self.nodeX = nodeX
-        self.nodeY = nodeY
-        self.nodeZ = nodeZ
-        self.model_in = model_in
-        if self.model_in is None:
-            self.model_flag = False
-            self.model_in = np.zeros((n_x * n_y * n_z, 1), dtype=int)
-            self.action_Threshold.setEnabled(False)
-
     @track_error
     def load_mesh(self):
         self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
         if self.mesh_path:
+            self.label_MeshPath.setText(self.mesh_path)
             self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
             self.action_Threshold.setEnabled(True)
-            self.label_MeshPath.setText(self.mesh_path)
         self.build_mesh_model()
 
     @track_error
     def load_model(self):
         self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
         if self.model_path:
+            self.label_ModelPath.setText(self.model_path)
             self.model_in = np.loadtxt(self.model_path)
             self.action_Threshold.setEnabled(True)
-            self.label_ModelPath.setText(self.model_path)
         self.build_mesh_model()
             
     @track_error
     def build_mesh_model(self):
-        if self.model_path and self.mesh_path:
-            self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
+        if self.mesh_path:
+            self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
     def load_mesh_model(self):
@@ -203,6 +190,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
                 self.model_in = np.loadtxt(self.model_path)
                 self.action_Threshold.setEnabled(True)
+                self.plotter.clear()
                 self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
                 # self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
                 self.label_MeshPath.setText(self.mesh_path)
@@ -222,38 +210,40 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     @track_error_args
     def view_model_ubc(self, nodeX, nodeY, nodeZ, model_in):
-        self.set_mesh_model(nodeX, nodeY, nodeZ, model_in)
         xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
         self.grid = pv.StructuredGrid(xx, yy, zz)
-        values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
-                                  order='F')
-        self.grid.cell_arrays["values"] = values.flatten(order="C")
-        self.plotter.clear()
-        if self.model_flag:
+        if model_in is None:
+            self.plotter.clear()
+            self.plotter.add_mesh(self.grid,
+                                  style='wireframe')
+            self.action_Threshold.setEnabled(False)
+        else:
+            self.plotter.clear()
+            values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
+                                      order='F')
+            self.grid.cell_arrays["values"] = values.flatten(order="C")
             self.plotter.add_mesh(self.grid,
                                   scalars='values',
                                   show_edges=True)
-        else:
-            self.plotter.add_mesh(self.grid,
-                                  style='wireframe')
 
         self.bounds_flag = True
         self.bounds()
 
     @track_error_args
     def view_model_pyvista(self, nodeX, nodeY, nodeZ, model_in):
-        self.set_mesh_model(nodeX, nodeY, nodeZ, model_in)
         xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
         self.grid = pv.StructuredGrid(xx, yy, zz)
-        self.grid.cell_arrays["values"] = model_in
-        self.plotter.clear()
-        if self.model_flag:
+        if model_in is None:
+            self.plotter.clear()
+            self.plotter.add_mesh(self.grid,
+                                  style='wireframe')
+            self.action_Threshold.setEnabled(False)
+        else:
+            self.grid.cell_arrays["values"] = model_in
+            self.plotter.clear()
             self.plotter.add_mesh(self.grid,
                                   scalars='values',
                                   show_edges=True)
-        else:
-            self.plotter.add_mesh(self.grid,
-                                  style='wireframe')
 
         self.bounds_flag = True
         self.bounds()
@@ -370,7 +360,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.orientation_marker_flag = True
 
     def set_xoy_view(self):
-        self.plotter.view_xy()
+        # self.plotter.view_xy()
+        self.plotter.view_yx()
 
     def set_xoz_view(self):
         self.plotter.view_xz()
@@ -385,6 +376,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.plotter.reset_camera()
 
     def closeEvent(self, event):
+        self.plotter.clear()
         self.plotter.close()
 
     def clear(self):
