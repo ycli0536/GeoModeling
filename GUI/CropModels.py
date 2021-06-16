@@ -106,13 +106,14 @@ class CropModelDialog(QDialog, Ui_Dialog):
                       (y >= sub_nodeY[0]) & (y <= sub_nodeY[-1]) & \
                       (z <= sub_nodeZ[0]) & (z >= sub_nodeZ[-1])
                 cropped_model_o = model_o[ind]
+                np.savetxt(os.path.join(self.commandLinkBtn_outputpath.text(), 'cropped_model_%05d.txt' % i), cropped_model_o)
                 # UBC format: Z, X, Y
                 values = cropped_model_o.reshape((len(sub_nodeZ) - 1, len(sub_nodeX) - 1, len(sub_nodeY) - 1),
                                                  order='F')
                 for j in range(len(sub_nodeZ) - 1):
                     cropped_model[:, :, j] = values[j, :, :].T
 
-                np.save(os.path.join(self.commandLinkBtn_outputpath.text(), 'cropped_model_%05d' % i), cropped_model)
+                np.save(os.path.join(self.commandLinkBtn_outputpath.text(), 'cropped_model_%04d' % i), cropped_model)
 
                 # # original model vector -> original model matrix -> cropped model matrix
                 # cropped_model = np.empty((len(sub_nodeY) - 1, len(sub_nodeX) - 1, len(sub_nodeZ) - 1))
