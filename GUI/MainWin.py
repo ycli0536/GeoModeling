@@ -143,7 +143,7 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         self.action_View_added_well_paths.triggered.connect(self.view_added_wellpaths)
 
         # Model generation menu
-        self.action_SlabGen.triggered.connect(self.slab_random_generation)
+        self.action_OctagonalSlab.triggered.connect(self.slab_random_generation)
         self.action_EllipsoidGen.triggered.connect(self.ellipsoid_random_generation)
 
     def set_statusbar(self):
@@ -339,7 +339,7 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
     @track_error
     def slab_random_generation(self):
         slab_random_win = AddRandomSlabDialog(self.project_dir)
-        slab_random_win.setWindowTitle('Random Slab')
+        slab_random_win.setWindowTitle('Random Slab (Octagonal plate)')
         slab_random_win.show()
         slab_random_win.exec()
 

@@ -136,7 +136,15 @@
     <property name="title">
      <string>Model Generator</string>
     </property>
-    <addaction name="action_SlabGen"/>
+    <widget class="QMenu" name="menu_SlabGen">
+     <property name="title">
+      <string>Slabs</string>
+     </property>
+     <addaction name="action_DiskSlab"/>
+     <addaction name="action_RectangularSlab"/>
+     <addaction name="action_OctagonalSlab"/>
+    </widget>
+    <addaction name="menu_SlabGen"/>
     <addaction name="action_EllipsoidGen"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
@@ -260,11 +268,6 @@
     <string>Receiver config</string>
    </property>
   </action>
-  <action name="action_SlabGen">
-   <property name="text">
-    <string>Slabs</string>
-   </property>
-  </action>
   <action name="action_EllipsoidGen">
    <property name="text">
     <string>Ellipsoids</string>
@@ -306,6 +309,21 @@
   <action name="action_ViewModels">
    <property name="text">
     <string>View Models</string>
+   </property>
+  </action>
+  <action name="action_RectangularSlab">
+   <property name="text">
+    <string>Rectangular plate</string>
+   </property>
+  </action>
+  <action name="action_OctagonalSlab">
+   <property name="text">
+    <string>Octagonal plate</string>
+   </property>
+  </action>
+  <action name="action_DiskSlab">
+   <property name="text">
+    <string>Disk</string>
    </property>
   </action>
  </widget>

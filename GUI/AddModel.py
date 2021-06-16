@@ -7,7 +7,7 @@ from functions.utils import read_mesh_file
 from UI_init.Ui_addSlab import Ui_Dialog as SlabDialog
 from UI_init.Ui_addEllipsoid import Ui_Dialog as EllipsoidDialog
 from UI_init.Ui_addRandomEllipsoid import Ui_Dialog as RandomEllipsoidDialog
-from UI_init.Ui_addRandomSlab import Ui_Dialog as RandomSlabDialog
+from UI_init.Ui_addRandomSlab_oct import Ui_Dialog as RandomSlabDialog
 from UI_init.Ui_progressWin import Ui_Dialog as ProgressDialog
 
 from GUI.FilenameSetting import FileNameSettingWin
@@ -870,8 +870,8 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
         self.lineEdit_SlabRalphamax.setText('45')
         self.lineEdit_SlabRbetamax.setText('45')
         self.lineEdit_SlabRthetamax.setText('45')
-        self.lineEdit_directionmin.setText('100')
-        self.lineEdit_directionmax.setText('300')
+        # self.lineEdit_direction1min.setText('100')
+        # self.lineEdit_direction1max.setText('300')
         self.lineEdit_thmin.setText('100')
         self.lineEdit_thmax.setText('300')
         self.lineEdit_valmin.setText('3')
@@ -945,11 +945,55 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
             self.lineEdit_valmax.clear()
             self.label_val.setText('Value fixed: ')
         if self.checkBox_directionL.isChecked():
-            self.label_directionRange.setVisible(True)
-            self.lineEdit_directionmax.setVisible(True)
-            self.label_direction.setText('Directional 8 axes lengths: ')
+            self.groupBox_oct.setTitle('Octagonal plate')
+            self.label_direction1Range.setVisible(True)
+            self.lineEdit_direction1max.setVisible(True)
+
+            self.label_direction2Range.setVisible(True)
+            self.lineEdit_direction2max.setVisible(True)
+
+            self.label_direction3Range.setVisible(True)
+            self.lineEdit_direction3max.setVisible(True)
+
+            self.label_direction4Range.setVisible(True)
+            self.lineEdit_direction4max.setVisible(True)
+
+            self.label_direction5Range.setVisible(True)
+            self.lineEdit_direction5max.setVisible(True)
+
+            self.label_direction6Range.setVisible(True)
+            self.lineEdit_direction6max.setVisible(True)
+
+            self.label_direction7Range.setVisible(True)
+            self.lineEdit_direction7max.setVisible(True)
+
+            self.label_direction8Range.setVisible(True)
+            self.lineEdit_direction8max.setVisible(True)
         else:
-            self.label_direction.setText('Directional 8 axes lengths fixed: ')
+            self.groupBox_oct.setTitle('Octagonal plate (directional 8 axes lengths fixed)')
+            self.label_direction1Range.setVisible(False)
+            self.lineEdit_direction1max.setVisible(False)
+
+            self.label_direction2Range.setVisible(False)
+            self.lineEdit_direction2max.setVisible(False)
+
+            self.label_direction3Range.setVisible(False)
+            self.lineEdit_direction3max.setVisible(False)
+
+            self.label_direction4Range.setVisible(False)
+            self.lineEdit_direction4max.setVisible(False)
+
+            self.label_direction5Range.setVisible(False)
+            self.lineEdit_direction5max.setVisible(False)
+
+            self.label_direction6Range.setVisible(False)
+            self.lineEdit_direction6max.setVisible(False)
+
+            self.label_direction7Range.setVisible(False)
+            self.lineEdit_direction7max.setVisible(False)
+
+            self.label_direction8Range.setVisible(False)
+            self.lineEdit_direction8max.setVisible(False)
         if self.checkBox_rotation.checkState() == 0 and \
            self.checkBox_centerPoints.checkState() == 0 and \
            self.checkBox_th.checkState() == 0 and \
@@ -968,12 +1012,23 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
             minSlabcenterX = float(self.lineEdit_SlabcenterXmin.text())
             minSlabcenterY = float(self.lineEdit_SlabcenterYmin.text())
             minSlabcenterZ = float(self.lineEdit_SlabcenterZmin.text())
+
             minSlabRalpha = float(self.lineEdit_SlabRalphamin.text())
             minSlabRbeta = float(self.lineEdit_SlabRbetamin.text())
             minSlabRtheta = float(self.lineEdit_SlabRthetamin.text())
-            minLength = float(self.lineEdit_directionmin.text())
+
+            minLength1 = float(self.lineEdit_direction1min.text())
+            minLength2 = float(self.lineEdit_direction2min.text())
+            minLength3 = float(self.lineEdit_direction3min.text())
+            minLength4 = float(self.lineEdit_direction4min.text())
+            minLength5 = float(self.lineEdit_direction5min.text())
+            minLength6 = float(self.lineEdit_direction6min.text())
+            minLength7 = float(self.lineEdit_direction7min.text())
+            minLength8 = float(self.lineEdit_direction8min.text())
+
             minTh = float(self.lineEdit_thmin.text())
             minVal = float(self.lineEdit_valmin.text())
+
             if self.checkBox_centerPoints.checkState() == 0:
                 self.lineEdit_SlabcenterXmax.setText(str(minSlabcenterX))
                 self.lineEdit_SlabcenterYmax.setText(str(minSlabcenterY))
@@ -986,26 +1041,63 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
                 self.lineEdit_thmax.setText(str(minTh))
             if self.checkBox_val.checkState() == 0:
                 self.lineEdit_valmax.setText(str(minVal))
+            if self.checkBox_directionL.checkState() == 0:
+                self.lineEdit_direction1max.setText(str(minLength1))
+                self.lineEdit_direction2max.setText(str(minLength2))
+                self.lineEdit_direction3max.setText(str(minLength3))
+                self.lineEdit_direction4max.setText(str(minLength4))
+                self.lineEdit_direction5max.setText(str(minLength5))
+                self.lineEdit_direction6max.setText(str(minLength6))
+                self.lineEdit_direction7max.setText(str(minLength7))
+                self.lineEdit_direction8max.setText(str(minLength8))
+
             self.model_count = int(self.lineEdit_count.text())
+
             maxSlabcenterX = float(self.lineEdit_SlabcenterXmax.text())
             maxSlabcenterY = float(self.lineEdit_SlabcenterYmax.text())
             maxSlabcenterZ = float(self.lineEdit_SlabcenterZmax.text())
+
             SlabcenterX_Set = np.random.uniform(minSlabcenterX, maxSlabcenterX, self.model_count)
             SlabcenterY_Set = np.random.uniform(minSlabcenterY, maxSlabcenterY, self.model_count)
             SlabcenterZ_Set = np.random.uniform(minSlabcenterZ, maxSlabcenterZ, self.model_count)
+
             maxSlabRalpha = float(self.lineEdit_SlabRalphamax.text())
             maxSlabRbeta = float(self.lineEdit_SlabRbetamax.text())
             maxSlabRtheta = float(self.lineEdit_SlabRthetamax.text())
+
+            maxLength1 = float(self.lineEdit_direction1max.text())
+            maxLength2 = float(self.lineEdit_direction2max.text())
+            maxLength3 = float(self.lineEdit_direction3max.text())
+            maxLength4 = float(self.lineEdit_direction4max.text())
+            maxLength5 = float(self.lineEdit_direction5max.text())
+            maxLength6 = float(self.lineEdit_direction6max.text())
+            maxLength7 = float(self.lineEdit_direction7max.text())
+            maxLength8 = float(self.lineEdit_direction8max.text())
+
             SlabRalpha_Set = np.random.uniform(minSlabRalpha, maxSlabRalpha, self.model_count)
             SlabRbeta_Set = np.random.uniform(minSlabRbeta, maxSlabRbeta, self.model_count)
             SlabRtheta_Set = np.random.uniform(minSlabRtheta, maxSlabRtheta, self.model_count)
-            maxLength = float(self.lineEdit_directionmax.text())
-            if self.checkBox_directionL.checkState() == 0:
-                ControlLengths = np.random.uniform(minLength, maxLength, 8)
-                ControlLength_Set = np.tile(np.array([ControlLengths]).transpose(),
-                                            (1, self.model_count))
-            else:
-                ControlLength_Set = np.random.uniform(minLength, maxLength, (8, self.model_count))
+
+            ControlLength1 = np.random.uniform(minLength1, maxLength1)
+            ControlLength2 = np.random.uniform(minLength2, maxLength2)
+            ControlLength3 = np.random.uniform(minLength3, maxLength3)
+            ControlLength4 = np.random.uniform(minLength4, maxLength4)
+            ControlLength5 = np.random.uniform(minLength5, maxLength5)
+            ControlLength6 = np.random.uniform(minLength6, maxLength6)
+            ControlLength7 = np.random.uniform(minLength7, maxLength7)
+            ControlLength8 = np.random.uniform(minLength8, maxLength8)
+            ControlLengths = np.array([ControlLength1, ControlLength2, ControlLength3, ControlLength4,
+                                       ControlLength5, ControlLength6, ControlLength7, ControlLength8])
+            ControlLength_Set = np.tile(np.array([ControlLengths]).transpose(),
+                                        (1, self.model_count))
+
+            # if self.checkBox_directionL.checkState() == 0:
+            #     ControlLengths = np.random.uniform(minLength, maxLength, 8)
+            #     ControlLength_Set = np.tile(np.array([ControlLengths]).transpose(),
+            #                                 (1, self.model_count))
+            # else:
+            #     ControlLength_Set = np.random.uniform(minLength, maxLength, (8, self.model_count))
+
             maxTh = float(self.lineEdit_thmax.text())
             SlabTh_Set = np.random.uniform(minTh, maxTh, self.model_count)
             maxVal = float(self.lineEdit_valmax.text())
