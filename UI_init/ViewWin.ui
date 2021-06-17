@@ -129,9 +129,11 @@
     <addaction name="separator"/>
     <addaction name="action_Wireframe"/>
     <addaction name="menu_Bounds"/>
-    <addaction name="action_Orientation_Marker"/>
-    <addaction name="menu_Scalars"/>
     <addaction name="menu_Ticks"/>
+    <addaction name="separator"/>
+    <addaction name="menu_Scalars"/>
+    <addaction name="action_Orientation_Marker"/>
+    <addaction name="action_ReverseXY"/>
     <addaction name="separator"/>
     <addaction name="action_Camera"/>
     <addaction name="separator"/>
@@ -318,6 +320,11 @@
   <action name="action_RealMesh">
    <property name="text">
     <string>Real mesh</string>
+   </property>
+  </action>
+  <action name="action_ReverseXY">
+   <property name="text">
+    <string>Reverse XY</string>
    </property>
   </action>
  </widget>

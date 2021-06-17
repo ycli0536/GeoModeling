@@ -116,12 +116,17 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.mesh_path = None
         self.model_path = None
         self.model_flag = True
-        self.model_in = None
         self.bounding_box_flag = False
         self.bounds_flag = True
         self.log_flag = False
         self.ticks = 'real'
         self.orientation_marker_flag = False
+        self.reverse_xy_flag = True
+
+        self.nodeX = None
+        self.nodeY = None
+        self.nodeZ = None
+        self.model_in = None
 
         self.plotter = QtInteractor()
         self.verticalLayout.addWidget(self.plotter.interactor)
@@ -134,14 +139,17 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         # menu View
         self.action_PyVista.triggered.connect(self.display_model_pyvista)
         self.action_UBC.triggered.connect(self.display_model_ubc)
+
         self.action_Wireframe.triggered.connect(self.wireframe)
         self.action_BoundingBox.triggered.connect(self.bounding_box)
         self.action_Bounds.triggered.connect(self.bounds)
+        self.action_LocalMesh.triggered.connect(self.view_local_mesh)
+        self.action_RealMesh.triggered.connect(self.view_real_mesh)
+
         self.action_Orientation_Marker.triggered.connect(self.show_all_marker)
         self.action_log.triggered.connect(self.log_scalar)
         self.action_normal.triggered.connect(self.normal_scalar)
-        self.action_LocalMesh.triggered.connect(self.view_local_mesh)
-        self.action_RealMesh.triggered.connect(self.view_real_mesh)
+        self.action_ReverseXY.triggered.connect(self.view_reverse_xy)
 
         self.action_Clear.triggered.connect(self.clear)
 
@@ -167,6 +175,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         if self.mesh_path:
             self.label_MeshPath.setText(self.mesh_path)
             self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
+            if self.reverse_xy_flag:
+                self.reverse_xy()
             self.action_Threshold.setEnabled(True)
         self.build_mesh_model()
 
@@ -194,6 +204,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.model_in = np.loadtxt(self.model_path)
                 self.action_Threshold.setEnabled(True)
                 self.plotter.clear()
+                if self.reverse_xy_flag:
+                    self.reverse_xy()
                 self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
                 # self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
                 self.label_MeshPath.setText(self.mesh_path)
@@ -286,6 +298,20 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.display_model_ubc()
 
     @track_error
+    def reverse_xy(self):
+        self.nodeX, self.nodeY = self.nodeY, self.nodeX
+
+    @track_error
+    def view_reverse_xy(self):
+        if self.reverse_xy_flag:
+            self.reverse_xy_flag = False
+        else:
+            self.reverse_xy_flag = True
+        self.reverse_xy()
+        self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
+        self.set_view_isometric()
+
+    @track_error
     def add_size_text(self):
         x_range = np.max(self.nodeX) - np.min(self.nodeX)
         y_range = np.max(self.nodeY) - np.min(self.nodeY)
@@ -305,6 +331,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             for i in range(len(points_paths)):
                 points_path = points_paths[i]
                 points_o = np.loadtxt(points_path, delimiter=',')
+                if self.reverse_xy_flag:
+                    points_o[:, [0, 1]] = points_o[:, [1, 0]]
                 points = pv.PolyData(points_o)
                 self.plotter.add_points(points, color='y', point_size=6)
 
@@ -317,6 +345,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             for i in range(len(points_paths)):
                 points_path = points_paths[i]
                 points = np.loadtxt(points_path, delimiter=',')
+                if self.reverse_xy_flag:
+                    points[:, [0, 1]] = points[:, [1, 0]]
                 self.plotter.add_lines(points, color='b')
 
     @track_error
