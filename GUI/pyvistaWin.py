@@ -210,12 +210,17 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     @track_error_args
     def view_model_ubc(self, nodeX, nodeY, nodeZ, model_in):
+        self.nodeX = nodeX
+        self.nodeY = nodeY
+        self.nodeZ = nodeZ
+        self.model_in = model_in
         xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
         self.grid = pv.StructuredGrid(xx, yy, zz)
         if model_in is None:
             self.plotter.clear()
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
+            self.add_size_text()
             self.action_Threshold.setEnabled(False)
         else:
             self.plotter.clear()
@@ -225,18 +230,24 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.plotter.add_mesh(self.grid,
                                   scalars='values',
                                   show_edges=True)
+            self.add_size_text()
 
         self.bounds_flag = True
         self.bounds()
 
     @track_error_args
     def view_model_pyvista(self, nodeX, nodeY, nodeZ, model_in):
+        self.nodeX = nodeX
+        self.nodeY = nodeY
+        self.nodeZ = nodeZ
+        self.model_in = model_in
         xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
         self.grid = pv.StructuredGrid(xx, yy, zz)
         if model_in is None:
             self.plotter.clear()
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
+            self.add_size_text()
             self.action_Threshold.setEnabled(False)
         else:
             self.grid.cell_arrays["values"] = model_in
@@ -244,9 +255,21 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.plotter.add_mesh(self.grid,
                                   scalars='values',
                                   show_edges=True)
+            self.add_size_text()
 
         self.bounds_flag = True
         self.bounds()
+
+    @track_error
+    def add_size_text(self):
+        x_range = np.max(self.nodeX) - np.min(self.nodeX)
+        y_range = np.max(self.nodeY) - np.min(self.nodeY)
+        z_range = np.max(self.nodeZ) - np.min(self.nodeZ)
+        self.plotter.add_text('%.2f x %.2f x %.2f (%d x %d x %d)'
+                              % (x_range, y_range, z_range,
+                                 len(self.nodeX) - 1, len(self.nodeY) - 1, len(self.nodeZ) - 1),
+                              position='upper_left',
+                              font_size=14)
 
     @track_error
     def add_points(self):
@@ -270,7 +293,6 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 points_path = points_paths[i]
                 points = np.loadtxt(points_path, delimiter=',')
                 self.plotter.add_lines(points, color='b')
-            self.bounds()
 
     @track_error
     def add_threshold(self):
@@ -360,8 +382,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.orientation_marker_flag = True
 
     def set_xoy_view(self):
-        # self.plotter.view_xy()
-        self.plotter.view_yx()
+        self.plotter.view_xy()
+        # self.plotter.view_yx()
 
     def set_xoz_view(self):
         self.plotter.view_xz()
