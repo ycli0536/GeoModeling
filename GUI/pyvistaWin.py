@@ -120,6 +120,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.bounding_box_flag = False
         self.bounds_flag = True
         self.log_flag = False
+        self.ticks = 'real'
         self.orientation_marker_flag = False
 
         self.plotter = QtInteractor()
@@ -139,6 +140,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_Orientation_Marker.triggered.connect(self.show_all_marker)
         self.action_log.triggered.connect(self.log_scalar)
         self.action_normal.triggered.connect(self.normal_scalar)
+        self.action_LocalMesh.triggered.connect(self.view_local_mesh)
+        self.action_RealMesh.triggered.connect(self.view_real_mesh)
 
         self.action_Clear.triggered.connect(self.clear)
 
@@ -175,7 +178,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.model_in = np.loadtxt(self.model_path)
             self.action_Threshold.setEnabled(True)
         self.build_mesh_model()
-            
+
     @track_error
     def build_mesh_model(self):
         if self.mesh_path:
@@ -214,8 +217,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.nodeY = nodeY
         self.nodeZ = nodeZ
         self.model_in = model_in
-        xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
-        self.grid = pv.StructuredGrid(xx, yy, zz)
+        self.ticks2grid(nodeX, nodeY, nodeZ)
         if model_in is None:
             self.plotter.clear()
             self.plotter.add_mesh(self.grid,
@@ -241,8 +243,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.nodeY = nodeY
         self.nodeZ = nodeZ
         self.model_in = model_in
-        xx, yy, zz = np.meshgrid(nodeX, nodeY, nodeZ)
-        self.grid = pv.StructuredGrid(xx, yy, zz)
+        self.ticks2grid(nodeX, nodeY, nodeZ)
         if model_in is None:
             self.plotter.clear()
             self.plotter.add_mesh(self.grid,
@@ -259,6 +260,30 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
         self.bounds_flag = True
         self.bounds()
+
+    @track_error_args
+    def ticks2grid(self, node_x, node_y, node_z):
+        if self.ticks == 'local':
+            local_node_x = node_x - np.min(node_x)
+            local_node_y = node_y - np.min(node_y)
+            local_node_z = node_z - np.max(node_z)
+            xx, yy, zz = np.meshgrid(local_node_x, local_node_y, local_node_z)
+            self.grid = pv.StructuredGrid(xx, yy, zz)
+        elif self.ticks == 'real':
+            xx, yy, zz = np.meshgrid(node_x, node_y, node_z)
+            self.grid = pv.StructuredGrid(xx, yy, zz)
+
+    @track_error
+    def view_local_mesh(self):
+        self.ticks = 'local'
+        self.set_view_isometric()
+        self.display_model_ubc()
+
+    @track_error
+    def view_real_mesh(self):
+        self.ticks = 'real'
+        self.set_view_isometric()
+        self.display_model_ubc()
 
     @track_error
     def add_size_text(self):

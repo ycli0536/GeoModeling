@@ -83,7 +83,7 @@
      <x>0</x>
      <y>0</y>
      <width>978</width>
-     <height>26</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -104,7 +104,7 @@
      <addaction name="action_BoundingBox"/>
      <addaction name="action_Bounds"/>
     </widget>
-    <widget class="QMenu" name="menuScalars">
+    <widget class="QMenu" name="menu_Scalars">
      <property name="title">
       <string>Scalars</string>
      </property>
@@ -118,12 +118,20 @@
      <addaction name="action_PyVista"/>
      <addaction name="action_UBC"/>
     </widget>
+    <widget class="QMenu" name="menu_Ticks">
+     <property name="title">
+      <string>Ticks</string>
+     </property>
+     <addaction name="action_LocalMesh"/>
+     <addaction name="action_RealMesh"/>
+    </widget>
     <addaction name="menu_Display"/>
     <addaction name="separator"/>
     <addaction name="action_Wireframe"/>
     <addaction name="menu_Bounds"/>
     <addaction name="action_Orientation_Marker"/>
-    <addaction name="menuScalars"/>
+    <addaction name="menu_Scalars"/>
+    <addaction name="menu_Ticks"/>
     <addaction name="separator"/>
     <addaction name="action_Camera"/>
     <addaction name="separator"/>
@@ -300,6 +308,16 @@
   <action name="action_AddLines">
    <property name="text">
     <string>Lines</string>
+   </property>
+  </action>
+  <action name="action_LocalMesh">
+   <property name="text">
+    <string>Local mesh</string>
+   </property>
+  </action>
+  <action name="action_RealMesh">
+   <property name="text">
+    <string>Real mesh</string>
    </property>
   </action>
  </widget>
