@@ -91,6 +91,7 @@
      <string>File</string>
     </property>
     <addaction name="action_Load"/>
+    <addaction name="action_Add"/>
     <addaction name="action_Exit"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -325,6 +326,11 @@
   <action name="action_ReverseXY">
    <property name="text">
     <string>Reverse XY</string>
+   </property>
+  </action>
+  <action name="action_Add">
+   <property name="text">
+    <string>Add</string>
    </property>
   </action>
  </widget>

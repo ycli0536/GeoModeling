@@ -121,7 +121,11 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.log_flag = False
         self.ticks = 'real'
         self.orientation_marker_flag = False
-        self.reverse_xy_flag = True
+        self.reverse_xy_flag = False
+
+        self.add_mode = False
+        self.grids = pv.MultiBlock()
+        self.action_Threshold.setEnabled(False)
 
         self.nodeX = None
         self.nodeY = None
@@ -133,6 +137,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
         # menu File
         self.action_Load.triggered.connect(self.load_mesh_model)
+        self.action_Add.triggered.connect(self.add_mesh_model)
         self.commandLinkButton_mesh.clicked.connect(self.load_mesh)
         self.commandLinkButton_model.clicked.connect(self.load_model)
 
@@ -177,7 +182,6 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
             if self.reverse_xy_flag:
                 self.reverse_xy()
-            self.action_Threshold.setEnabled(True)
         self.build_mesh_model()
 
     @track_error
@@ -186,24 +190,23 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         if self.model_path:
             self.label_ModelPath.setText(self.model_path)
             self.model_in = np.loadtxt(self.model_path)
-            self.action_Threshold.setEnabled(True)
         self.build_mesh_model()
 
     @track_error
     def build_mesh_model(self):
         if self.mesh_path:
+            self.add_mode = False
+            self.grids = pv.MultiBlock()
             self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
-    def load_mesh_model(self):
+    def read_mesh_model(self):
         self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
         if self.mesh_path:
             self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
             if self.model_path:
                 self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
                 self.model_in = np.loadtxt(self.model_path)
-                self.action_Threshold.setEnabled(True)
-                self.plotter.clear()
                 if self.reverse_xy_flag:
                     self.reverse_xy()
                 self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
@@ -215,12 +218,16 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     def display_model_pyvista(self):
         # self.plotter.clear()
         # self.plotter.set_background('white')
+        self.add_mode = False
+        self.grids = pv.MultiBlock()
         self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
     def display_model_ubc(self):
         # self.plotter.clear()
         # self.plotter.set_background('white')
+        self.add_mode = False
+        self.grids = pv.MultiBlock()
         self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error_args
@@ -230,21 +237,25 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.nodeZ = nodeZ
         self.model_in = model_in
         self.ticks2grid(nodeX, nodeY, nodeZ)
+        self.grids.append(self.grid)
         if model_in is None:
-            self.plotter.clear()
+            if not self.add_mode:
+                self.plotter.clear()
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
             self.add_size_text()
             self.action_Threshold.setEnabled(False)
         else:
-            self.plotter.clear()
             values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
                                       order='F')
             self.grid.cell_arrays["values"] = values.flatten(order="C")
+            if not self.add_mode:
+                self.plotter.clear()
             self.plotter.add_mesh(self.grid,
                                   scalars='values',
                                   show_edges=True)
             self.add_size_text()
+            self.action_Threshold.setEnabled(True)
 
         self.bounds_flag = True
         self.bounds()
@@ -256,22 +267,37 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.nodeZ = nodeZ
         self.model_in = model_in
         self.ticks2grid(nodeX, nodeY, nodeZ)
+        self.grids.append(self.grid)
         if model_in is None:
-            self.plotter.clear()
+            if not self.add_mode:
+                self.plotter.clear()
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
             self.add_size_text()
             self.action_Threshold.setEnabled(False)
         else:
             self.grid.cell_arrays["values"] = model_in
-            self.plotter.clear()
+            if not self.add_mode:
+                self.plotter.clear()
             self.plotter.add_mesh(self.grid,
                                   scalars='values',
                                   show_edges=True)
             self.add_size_text()
+            self.action_Threshold.setEnabled(True)
 
         self.bounds_flag = True
         self.bounds()
+
+    @track_error
+    def load_mesh_model(self):
+        self.add_mode = False
+        self.grids = pv.MultiBlock()
+        self.read_mesh_model()
+
+    @track_error
+    def add_mesh_model(self):
+        self.add_mode = True
+        self.read_mesh_model()
 
     @track_error_args
     def ticks2grid(self, node_x, node_y, node_z):
@@ -308,6 +334,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         else:
             self.reverse_xy_flag = True
         self.reverse_xy()
+        self.add_mode = False
+        self.grids = pv.MultiBlock()
         self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
         self.set_view_isometric()
 
@@ -359,12 +387,14 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         # #                       categories=True,
         # #                       show_edges=False)
         if self.log_flag:
-            self.plotter.add_mesh_threshold(self.grid,
-                                            invert=False,
-                                            log_scale=True)
+            for grid in self.grids:
+                self.plotter.add_mesh_threshold(grid,
+                                                invert=False,
+                                                log_scale=True)
         else:
-            self.plotter.add_mesh_threshold(self.grid,
-                                            invert=False)
+            for grid in self.grids:
+                self.plotter.add_mesh_threshold(grid,
+                                                invert=False)
         self.bounds_flag = True
         self.bounds()
 
@@ -402,6 +432,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     def cropping(self):
         self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
         self.crop_win.show()
+        self.add_mode = False
+        self.grids = pv.MultiBlock()
         self.crop_win.signal.connect(self.view_model_ubc)
 
     @track_error
@@ -458,3 +490,5 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     def clear(self):
         self.plotter.clear()
+        self.add_mode = False
+        self.grids = pv.MultiBlock()
