@@ -1078,18 +1078,16 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
             SlabRbeta_Set = np.random.uniform(minSlabRbeta, maxSlabRbeta, self.model_count)
             SlabRtheta_Set = np.random.uniform(minSlabRtheta, maxSlabRtheta, self.model_count)
 
-            ControlLength1 = np.random.uniform(minLength1, maxLength1)
-            ControlLength2 = np.random.uniform(minLength2, maxLength2)
-            ControlLength3 = np.random.uniform(minLength3, maxLength3)
-            ControlLength4 = np.random.uniform(minLength4, maxLength4)
-            ControlLength5 = np.random.uniform(minLength5, maxLength5)
-            ControlLength6 = np.random.uniform(minLength6, maxLength6)
-            ControlLength7 = np.random.uniform(minLength7, maxLength7)
-            ControlLength8 = np.random.uniform(minLength8, maxLength8)
-            ControlLengths = np.array([ControlLength1, ControlLength2, ControlLength3, ControlLength4,
-                                       ControlLength5, ControlLength6, ControlLength7, ControlLength8])
-            ControlLength_Set = np.tile(np.array([ControlLengths]).transpose(),
-                                        (1, self.model_count))
+            ControlLength1 = np.random.uniform(minLength1, maxLength1, self.model_count)
+            ControlLength2 = np.random.uniform(minLength2, maxLength2, self.model_count)
+            ControlLength3 = np.random.uniform(minLength3, maxLength3, self.model_count)
+            ControlLength4 = np.random.uniform(minLength4, maxLength4, self.model_count)
+            ControlLength5 = np.random.uniform(minLength5, maxLength5, self.model_count)
+            ControlLength6 = np.random.uniform(minLength6, maxLength6, self.model_count)
+            ControlLength7 = np.random.uniform(minLength7, maxLength7, self.model_count)
+            ControlLength8 = np.random.uniform(minLength8, maxLength8, self.model_count)
+            ControlLength_Set = np.vstack([ControlLength1, ControlLength2, ControlLength3, ControlLength4,
+                                           ControlLength5, ControlLength6, ControlLength7, ControlLength8])
 
             # if self.checkBox_directionL.checkState() == 0:
             #     ControlLengths = np.random.uniform(minLength, maxLength, 8)
