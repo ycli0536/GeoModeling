@@ -362,7 +362,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 if self.reverse_xy_flag:
                     points_o[:, [0, 1]] = points_o[:, [1, 0]]
                 points = pv.PolyData(points_o)
-                self.plotter.add_points(points, color='y', point_size=6)
+                self.plotter.add_points(points, color='k', point_size=6)
 
     @track_error
     def add_lines(self):

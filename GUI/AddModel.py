@@ -111,7 +111,7 @@ class GenerationWorker(QtCore.QObject):
                 sfLocInfo = self.slab_control_points(ControlLength_Set[:, i],
                                                      [SlabcenterX_Set[i], SlabcenterY_Set[i], SlabcenterZ_Set[i]],
                                                      [SlabRalpha_Set[i], SlabRbeta_Set[i], SlabRtheta_Set[i]], normal)
-                model_out = models.addSlab(sfLocInfo, SlabTh_Set[i], SlabVal_Set[i], normal)
+                model_out, boundary = models.addSlab(sfLocInfo, SlabTh_Set[i], SlabVal_Set[i], normal)
 
                 with open(dir, 'w') as f:
                     for k in range(len(model_out)):
@@ -124,14 +124,22 @@ class GenerationWorker(QtCore.QObject):
                     with open(config_points_dir, 'w') as writer:
                         writer.write('ID, LOC_DIM1, LOC_DIM2, LOC_DIM3\n')
                 with open(config_points_dir, 'a') as writer:
-                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[0][0], sfLocInfo[0][1], sfLocInfo[0][2]))
-                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[1][0], sfLocInfo[1][1], sfLocInfo[1][2]))
-                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[2][0], sfLocInfo[2][1], sfLocInfo[2][2]))
-                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[3][0], sfLocInfo[3][1], sfLocInfo[3][2]))
-                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[4][0], sfLocInfo[4][1], sfLocInfo[4][2]))
-                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[5][0], sfLocInfo[5][1], sfLocInfo[5][2]))
-                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[6][0], sfLocInfo[6][1], sfLocInfo[6][2]))
-                    writer.write('%d, %f, %f, %f\n' % (i + 1, sfLocInfo[7][0], sfLocInfo[7][1], sfLocInfo[7][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[0][0], boundary[0][1], boundary[0][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[1][0], boundary[1][1], boundary[1][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[2][0], boundary[2][1], boundary[2][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[3][0], boundary[3][1], boundary[3][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[4][0], boundary[4][1], boundary[4][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[5][0], boundary[5][1], boundary[5][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[6][0], boundary[6][1], boundary[6][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[7][0], boundary[7][1], boundary[7][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[8][0], boundary[8][1], boundary[8][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[9][0], boundary[9][1], boundary[9][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[10][0], boundary[10][1], boundary[10][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[11][0], boundary[11][1], boundary[11][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[12][0], boundary[12][1], boundary[12][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[13][0], boundary[13][1], boundary[13][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[14][0], boundary[14][1], boundary[14][2]))
+                    writer.write('%d, %f, %f, %f\n' % (i + 1, boundary[15][0], boundary[15][1], boundary[15][2]))
             else:
                 self.no_dir_signal.emit()
                 break
@@ -347,7 +355,7 @@ class AddSlabDialog(QDialog, SlabDialog):
         self.control_points()
 
         models = addModels(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
-        self.model_out = models.addSlab(self.sfLocInfo, self.th, self.val, self.normal)
+        self.model_out, _ = models.addSlab(self.sfLocInfo, self.th, self.val, self.normal)
 
         if (self.nodeX is not None) and (self.model_out is not None):
             self.pushBtn_View.setEnabled(True)

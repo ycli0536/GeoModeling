@@ -35,7 +35,7 @@ class addModels():
         bottomSurf_vol = addSurface2(self.nodeX, self.nodeY, self.nodeZ, self.model_in, sfLocInfo_bottom, val_out, normal)
         ind = np.where(upperSurf_vol - bottomSurf_vol != 0)
         model_out[ind] = val_out
-        return model_out
+        return model_out, np.vstack((sfLocInfo_upper, sfLocInfo_bottom))
 
     def addEllipsoid(self, center, angles, axes, val_out):
         model_out = Ellipsoid(self.nodeX, self.nodeY, self.nodeZ, self.model_in,
