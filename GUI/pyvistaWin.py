@@ -249,9 +249,17 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.add_size_text()
             self.action_Threshold.setEnabled(False)
         else:
-            values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
-                                      order='F')
-            self.grid.cell_arrays["values"] = values.flatten(order="C")
+            if self.reverse_xy_flag:
+                values = model_in.reshape((len(nodeX) - 1, len(nodeY) - 1, len(nodeZ) - 1)).transpose(1, 0, 2)
+                values = values.flatten()
+                values = values.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
+                                        order='F')
+                self.grid.cell_arrays["values"] = values.flatten(order="C")
+                pass
+            else:
+                values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
+                                          order='F')
+                self.grid.cell_arrays["values"] = values.flatten(order="C")
             if not self.add_mode:
                 self.plotter.clear()
             else:
