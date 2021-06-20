@@ -241,6 +241,9 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         if model_in is None:
             if not self.add_mode:
                 self.plotter.clear()
+            else:
+                # self.plotter.textActor.GetText(2)
+                self.plotter.textActor.ClearAllTexts()
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
             self.add_size_text()
@@ -251,6 +254,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.grid.cell_arrays["values"] = values.flatten(order="C")
             if not self.add_mode:
                 self.plotter.clear()
+            else:
+                self.plotter.textActor.ClearAllTexts()
             self.plotter.add_mesh(self.grid,
                                   scalars='values',
                                   show_edges=True)
@@ -271,6 +276,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         if model_in is None:
             if not self.add_mode:
                 self.plotter.clear()
+            else:
+                self.plotter.textActor.ClearAllTexts()
             self.plotter.add_mesh(self.grid,
                                   style='wireframe')
             self.add_size_text()
@@ -279,6 +286,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             self.grid.cell_arrays["values"] = model_in
             if not self.add_mode:
                 self.plotter.clear()
+            else:
+                self.plotter.textActor.ClearAllTexts()
             self.plotter.add_mesh(self.grid,
                                   scalars='values',
                                   show_edges=True)
