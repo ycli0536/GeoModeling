@@ -398,7 +398,7 @@ class AddSlabDialog(QDialog, SlabDialog):
                                 QMessageBox.Yes)
         else:
             self.ViewWin = pyvistaWin()
-            self.ViewWin.view_model_ubc(self.nodeY, self.nodeX, self.nodeZ, self.model_out)
+            self.ViewWin.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_out)
             self.ViewWin.show()
             # try expect KeyError
 
@@ -843,7 +843,7 @@ class AddRandomEllipsoidDialog(QDialog, RandomEllipsoidDialog):
         if random_ellipsoid_view_win.select_flag:
             model_in = np.loadtxt(random_ellipsoid_view_win.selected_path)
             self.showWin = pyvistaWin()
-            self.showWin.view_model_ubc(self.nodeY, self.nodeX, self.nodeZ, model_in)
+            self.showWin.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, model_in)
             self.showWin.show()
 
 
@@ -1174,5 +1174,5 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
         if random_slab_view_win.select_flag:
             model_in = np.loadtxt(random_slab_view_win.selected_path)
             self.showWin = pyvistaWin()
-            self.showWin.view_model_ubc(self.nodeY, self.nodeX, self.nodeZ, model_in)
+            self.showWin.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, model_in)
             self.showWin.show()
