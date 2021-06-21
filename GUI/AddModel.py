@@ -3,6 +3,7 @@ from PyQt5 import QtCore
 
 from functions.addModels import addModels
 from functions.utils import read_mesh_file
+from functions.decorators import track_error, track_error_args
 
 from UI_init.Ui_addSlab import Ui_Dialog as SlabDialog
 from UI_init.Ui_addEllipsoid import Ui_Dialog as EllipsoidDialog
@@ -17,24 +18,6 @@ from GUI.pyvistaWin import pyvistaWin
 from functools import partial
 import numpy as np
 import os
-
-def track_error(func):
-    def wrapper(self):
-        try:
-            func(self)
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
-
-
-def track_error_args(func):
-    def wrapper(self, *args, **kwargs):
-        try:
-            result = func(self, *args, **kwargs)
-            return result
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
 
 
 class GenerationWorker(QtCore.QObject):

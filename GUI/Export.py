@@ -3,29 +3,11 @@ from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 from UI_init.Ui_Export import Ui_Dialog
 
 from functions.utils import read_mesh_file
+from functions.decorators import track_error
 
 import os
 import numpy as np
 import shutil
-
-
-def track_error(func):
-    def wrapper(self):
-        try:
-            result = func(self)
-            return result
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
-
-
-def track_error_args(func):
-    def wrapper(self, *args, **kwargs):
-        try:
-            func(self, *args, **kwargs)
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
 
 
 class ExportDialog(QDialog, Ui_Dialog):

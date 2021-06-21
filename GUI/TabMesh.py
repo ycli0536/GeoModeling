@@ -10,25 +10,10 @@ from GUI.FilenameSetting import FileNameSettingWin
 
 from functions.AutoPadding import auto_padding
 from functions.utils import write_mesh_file
+from functions.decorators import track_error, finished_reminder
 
 import numpy as np
 import os
-
-
-def track_error(func):
-    def wrapper(self):
-        try:
-            func(self)
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
-
-
-def finished_reminder(func):
-    def wrapper(self, *args, **kwargs):
-        func(self, *args, **kwargs)
-        QMessageBox.information(self, 'Finished', 'Task finished.', QMessageBox.Yes)
-    return wrapper
 
 
 class AddTabMesh(QTabWidget, Ui_TabMesh):

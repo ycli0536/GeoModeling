@@ -17,42 +17,12 @@ from GUI.SelectWin import SelectWin
 from GUI.DoubleSelectWin import DoubleSelectWin
 
 from functions.utils import read_mesh_file
+from functions.decorators import track_error, track_error_args
+from functions.decorators import finished_reminder
 
 import numpy as np
 import os
 import shutil
-
-
-def track_error(func):
-    def wrapper(self):
-        try:
-            func(self)
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
-
-
-def track_error_args(func):
-    def wrapper(self, *args, **kwargs):
-        try:
-            func(self, *args, **kwargs)
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
-
-
-def finished_reminder(func):
-    def wrapper(self):
-        func(self)
-        QMessageBox.information(self, 'Finished', 'Task finished.', QMessageBox.Yes)
-    return wrapper
-
-
-def not_finished_yet(func):
-    def wrapper(self):
-        func(self)
-        QMessageBox.information(self, 'Information', 'NOT FINISHED YET...', QMessageBox.Yes)
-    return wrapper
 
 
 class NewProjDialog(Ui_Dialog, QDialog):

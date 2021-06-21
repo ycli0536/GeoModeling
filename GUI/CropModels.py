@@ -3,28 +3,11 @@ from PyQt5.QtWidgets import QDialog, QMessageBox, QFileDialog
 from UI_init.Ui_CropModels import Ui_Dialog
 from functions.utils import CellIndex2PointXYZ
 from functions.utils import write_mesh_file
+from functions.decorators import track_error, track_error_args
 
 import os
 import numpy as np
 import shutil
-
-
-def track_error(func):
-    def wrapper(self):
-        try:
-            func(self)
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
-
-
-def track_error_args(func):
-    def wrapper(self, *args, **kwargs):
-        try:
-            func(self, *args, **kwargs)
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
 
 
 class CropModelDialog(QDialog, Ui_Dialog):

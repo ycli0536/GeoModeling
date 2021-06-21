@@ -3,43 +3,11 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox, QDialog
 from UI_init.Ui_ViewWin import Ui_MainWindow
 from UI_init.Ui_CropModels import Ui_Dialog
 from functions.utils import read_mesh_file, CellIndex2PointXYZ
+from functions.decorators import track_error, track_error_args
 from pyvistaqt import QtInteractor, MainWindow
 
 import numpy as np
 import pyvista as pv
-import os
-
-
-def track_error(func):
-    def wrapper(self):
-        try:
-            func(self)
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
-
-
-def track_error_args(func):
-    def wrapper(self, *args, **kwargs):
-        try:
-            func(self, *args, **kwargs)
-        except Exception as e:
-            QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
-    return wrapper
-
-
-def finished_reminder(func):
-    def wrapper(self):
-        func(self)
-        QMessageBox.information(self, 'Finished', 'Task finished.', QMessageBox.Yes)
-    return wrapper
-
-
-def not_finished_yet(func):
-    def wrapper(self):
-        func(self)
-        QMessageBox.information(self, 'Information', 'NOT FINISHED YET...', QMessageBox.Yes)
-    return wrapper
 
 
 class CropModelDialog(QDialog, Ui_Dialog):
