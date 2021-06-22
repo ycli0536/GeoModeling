@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 from UI_init.Ui_Export import Ui_Dialog
 
 from functions.utils import read_mesh_file
-from functions.decorators import track_error
+from functions.decorators import track_error, track_error_args
+from functions.config_setting import get_setting_values, set_setting_values
 
 import os
 import numpy as np
@@ -14,6 +15,7 @@ class ExportDialog(QDialog, Ui_Dialog):
     def __init__(self, path):
         super(ExportDialog, self).__init__()
         self.setupUi(self)
+        self.get_config()
         self.project_dir = path
         self.select_flag = False
 
@@ -23,10 +25,24 @@ class ExportDialog(QDialog, Ui_Dialog):
         self.pushButton_ok.clicked.connect(self.export)
 
     @track_error
+    def get_config(self):
+        self.config_type = 'EXPORT'
+        self.config_name = ['frq_path',
+                            'window_width', 'window_height',
+                            'window_pos_x', 'window_pos_y',]
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.frq_path = init_variables[0]
+        self.lineEdit_frq.setText(self.frq_path)
+        if init_variables[1]:
+            self.resize(init_variables[1], init_variables[2])
+        if init_variables[3]:
+            self.move(init_variables[3], init_variables[4])
+
+    @track_error
     def load_frq(self):
-        self.frq_dir = QFileDialog.getOpenFileName(self, "Import frequency file", ".txt")
-        if self.frq_dir[0]:
-            self.lineEdit_frq.setText(self.frq_dir[0])
+        self.frq_path, _ = QFileDialog.getOpenFileName(self, "Import frequency file", ".txt")
+        if self.frq_path:
+            self.lineEdit_frq.setText(self.frq_path)
 
     @track_error
     def show_dirs(self):
@@ -127,7 +143,7 @@ class ExportDialog(QDialog, Ui_Dialog):
                     shutil.copy(self.wellpath_file, wellpath_save_path)
 
                     # save frqFile
-                    shutil.copy(self.frq_dir[0], frq_save_path)
+                    shutil.copy(self.frq_path, frq_save_path)
 
                 QMessageBox.information(self.pushButton_ok,
                                         'Information',
@@ -135,7 +151,12 @@ class ExportDialog(QDialog, Ui_Dialog):
                                         QMessageBox.Yes)
                 self.close()
 
+    @track_error_args
     def closeEvent(self, event):
+        variables = [self.lineEdit_frq.text(),
+                     self.rect().width(), self.rect().height(),
+                     self.pos().x(), self.pos().y()]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
         if not self.select_flag:
             reply = QMessageBox.question(self, 'Discard?',
                                          'Discard this operation?',

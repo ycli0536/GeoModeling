@@ -19,6 +19,7 @@ from GUI.DoubleSelectWin import DoubleSelectWin
 from functions.utils import read_mesh_file
 from functions.decorators import track_error, track_error_args
 from functions.decorators import finished_reminder
+from functions.config_setting import set_setting_values, get_setting_values
 
 import numpy as np
 import os
@@ -68,6 +69,7 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(FracMainWindow, self).__init__()
         self.setupUi(self)
+        self.get_config()
         self.set_statusbar()
         self.New_Dir = [['Mesh'],
                         ['Background'],
@@ -116,6 +118,22 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         self.action_OctagonalSlab.triggered.connect(self.slab_random_generation)
         self.action_EllipsoidGen.triggered.connect(self.ellipsoid_random_generation)
 
+    @track_error
+    def get_config(self):
+        self.config_type = 'MAIN_WINDOW'
+        self.config_name = ['project_dir',
+                            'window_width', 'window_height',
+                            'window_pos_x', 'window_pos_y',
+                            'showMaximized']
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.project_dir = init_variables[0]
+        if init_variables[1]:
+            self.resize(init_variables[1], init_variables[2])
+        if init_variables[3]:
+            self.move(init_variables[3], init_variables[4])
+        if init_variables[5]:
+            self.showMaximized()
+
     def set_statusbar(self):
         label = QLabel('中国石油集团东方地球物理勘探有限责任公司')
         label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
@@ -126,11 +144,6 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
     def new_project(self):
         new_proj_win = NewProjDialog()
         new_proj_win.exec_()
-
-        # ./ relative path??
-        # self.project_dir = os.path.join(new_proj_win.LineEdit_ProjDir.text(),
-        #                                 new_proj_win.LineEdit_ProjName.text())
-        # if self.project_dir:
 
         if new_proj_win.create_flag:
             self.project_dir = os.path.join(new_proj_win.LineEdit_ProjDir.text(),
@@ -144,12 +157,11 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
     @track_error
     def open_project(self):
         # add checking project structure
-        project_dir = QFileDialog.getExistingDirectory(self,
-                                                       "Select a project folder",
-                                                       "./")
+        self.project_dir = QFileDialog.getExistingDirectory(self,
+                                                            "Select a project folder",
+                                                            self.project_dir)
 
-        if project_dir:
-            self.project_dir = project_dir
+        if self.project_dir:
             self.after_open_proj()
 
     @track_error
@@ -177,11 +189,11 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         # what if I close this tab?
 
     @track_error
-    @finished_reminder
     def import_mesh(self):
-        imported_mesh_path = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
+        imported_mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
         # copy external mesh file to current project folder
-        shutil.copy(imported_mesh_path[0], os.path.join(self.project_dir, 'Mesh'))
+        if imported_mesh_path:
+            shutil.copy(imported_mesh_path, os.path.join(self.project_dir, 'Mesh'))
 
     @track_error
     def view_mesh(self):
@@ -388,3 +400,13 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
         self.treeView.setColumnHidden(2, True)
         self.treeView.setColumnHidden(3, True)
         self.treeView.setSortingEnabled(True)
+
+    @track_error_args
+    def closeEvent(self, event):
+        variables = [self.project_dir,
+                     self.rect().width(), self.rect().height(),
+                     self.pos().x(), self.pos().y(),
+                     int(self.isMaximized())]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
+        for i in range(self.tabWidget.count()):
+            self.tabWidget.widget(i).tab_removed()

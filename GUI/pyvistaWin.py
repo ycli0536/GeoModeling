@@ -1,9 +1,10 @@
-from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal, Qt, QSettings
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QDialog
 from UI_init.Ui_ViewWin import Ui_MainWindow
 from UI_init.Ui_CropModels import Ui_Dialog
 from functions.utils import read_mesh_file, CellIndex2PointXYZ
 from functions.decorators import track_error, track_error_args
+from functions.config_setting import get_setting_values, set_setting_values
 from pyvistaqt import QtInteractor, MainWindow
 
 import numpy as np
@@ -11,11 +12,13 @@ import pyvista as pv
 
 
 class CropModelDialog(QDialog, Ui_Dialog):
-    signal = QtCore.pyqtSignal(np.ndarray, np.ndarray, np.ndarray, np.ndarray)
+    signal = pyqtSignal(np.ndarray, np.ndarray, np.ndarray, np.ndarray)
 
     def __init__(self, nodeX, nodeY, nodeZ, model_in):
         super(CropModelDialog, self).__init__()
         self.setupUi(self)
+        self.get_config()
+
         self.nodeX = nodeX
         self.nodeY = nodeY
         self.nodeZ = nodeZ
@@ -26,6 +29,26 @@ class CropModelDialog(QDialog, Ui_Dialog):
         self.label_datapath.setEnabled(False)
         self.label_outputpath.setEnabled(False)
         self.pushButton_crop.clicked.connect(self.crop)
+
+    @track_error
+    def get_config(self):
+        self.config_type = 'CROP'
+        self.config_name = ['x_min', 'x_max',
+                            'y_min', 'y_max',
+                            'z_min', 'z_max',
+                            'window_width', 'window_height',
+                            'window_pos_x', 'window_pos_y']
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.lineEdit_Xmin.setText(init_variables[0])
+        self.lineEdit_Xmax.setText(init_variables[1])
+        self.lineEdit_Ymin.setText(init_variables[2])
+        self.lineEdit_Ymax.setText(init_variables[3])
+        self.lineEdit_Zmin.setText(init_variables[4])
+        self.lineEdit_Zmax.setText(init_variables[5])
+        if init_variables[6]:
+            self.resize(init_variables[6], init_variables[7])
+        if init_variables[8]:
+            self.move(init_variables[8], init_variables[9])
 
     def crop(self):
         try:
@@ -75,14 +98,21 @@ class CropModelDialog(QDialog, Ui_Dialog):
                                 "Pleas set right sub-space!",
                                 QMessageBox.Yes)
 
+    def closeEvent(self, event):
+        variables = [self.lineEdit_Xmin.text(), self.lineEdit_Xmax.text(),
+                     self.lineEdit_Ymin.text(), self.lineEdit_Ymax.text(),
+                     self.lineEdit_Zmin.text(), self.lineEdit_Zmax.text(),
+                     self.rect().width(), self.rect().height(),
+                     self.pos().x(), self.pos().y()]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
+
 
 class pyvistaWin(MainWindow, Ui_MainWindow):
     def __init__(self):
         super(pyvistaWin, self).__init__()
         self.setupUi(self)
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-        self.mesh_path = None
-        self.model_path = None
+        self.setAttribute(Qt.WA_DeleteOnClose)
+
         self.model_flag = True
         self.bounding_box_flag = False
         self.bounds_flag = True
@@ -102,6 +132,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
         self.plotter = QtInteractor()
         self.verticalLayout.addWidget(self.plotter.interactor)
+
+        self.get_config()
 
         # menu File
         self.action_Load.triggered.connect(self.load_mesh_model)
@@ -143,13 +175,30 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_Isometric.triggered.connect(self.set_view_isometric)
 
     @track_error
+    def get_config(self):
+        self.config_type = 'VIEW'
+        self.config_name = ['mesh_path', 'model_path',
+                            'window_width', 'window_height',
+                            'window_pos_X', 'window_pos_y',
+                            'showMaximized']
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.label_MeshPath.setText(init_variables[0])
+        self.label_ModelPath.setText(init_variables[1])
+        if init_variables[2]:
+            self.resize(init_variables[2], init_variables[3])
+        if init_variables[4]:
+            self.move(init_variables[4], init_variables[5])
+        if init_variables[6]:
+            self.showMaximized()
+        self.mesh_path = self.label_MeshPath.text()
+        self.model_path = self.label_ModelPath.text()
+        self.build_mesh_model()
+
+    @track_error
     def load_mesh(self):
         self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
         if self.mesh_path:
             self.label_MeshPath.setText(self.mesh_path)
-            self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
-            if self.reverse_xy_flag:
-                self.reverse_xy()
         self.build_mesh_model()
 
     @track_error
@@ -157,12 +206,16 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
         if self.model_path:
             self.label_ModelPath.setText(self.model_path)
-            self.model_in = np.loadtxt(self.model_path)
         self.build_mesh_model()
 
     @track_error
     def build_mesh_model(self):
         if self.mesh_path:
+            self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
+            if self.model_path:
+                self.model_in = np.loadtxt(self.model_path)
+            if self.reverse_xy_flag:
+                self.reverse_xy()
             self.add_mode = False
             self.grids = pv.MultiBlock()
             self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
@@ -470,6 +523,11 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.plotter.reset_camera()
 
     def closeEvent(self, event):
+        variables = [self.label_MeshPath.text(), self.label_ModelPath.text(),
+                     self.rect().width(), self.rect().height(),
+                     self.pos().x(), self.pos().y(),
+                     int(self.isMaximized())]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
         self.plotter.clear()
         self.plotter.close()
 
