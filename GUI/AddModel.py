@@ -4,6 +4,7 @@ from PyQt5 import QtCore
 from functions.addModels import addModels
 from functions.utils import read_mesh_file
 from functions.decorators import track_error, track_error_args
+from functions.config_setting import get_setting_values, set_setting_values
 
 from UI_init.Ui_addSlab import Ui_Dialog as SlabDialog
 from UI_init.Ui_addEllipsoid import Ui_Dialog as EllipsoidDialog
@@ -214,32 +215,14 @@ class AddSlabDialog(QDialog, SlabDialog):
     def __init__(self, path):
         super(AddSlabDialog, self).__init__()
         self.setupUi(self)
+        self.get_config()
         self.project_dir = path
         self.label_project.setText('Current Project: ' + self.project_dir.split('/')[-1])
         self.pushBtn_SaveModel.setEnabled(False)
         self.pushBtn_View.setEnabled(False)
         self.normal = 'x'
 
-        # for debugging
-        self.lineEdit_SlabcenterX.setText('79500')
-        self.lineEdit_SlabcenterY.setText('3560')
-        self.lineEdit_SlabcenterZ.setText('-2000')
-        self.lineEdit_SlabRalpha.setText('0')
-        self.lineEdit_SlabRbeta.setText('0')
-        self.lineEdit_SlabRtheta.setText('0')
-        self.lineEdit_th.setText('200')
-        self.lineEdit_val.setText('100')
-        self.lineEdit_Yp.setText('200')
-        self.lineEdit_Yn.setText('500')
-        self.lineEdit_Xp.setText('500')
-        self.lineEdit_Xn.setText('500')
-        self.lineEdit_XnYn.setText('200')
-        self.lineEdit_XpYp.setText('200')
-        self.lineEdit_XpYn.setText('200')
-        self.lineEdit_XnYp.setText('200')
-
         self.lineEdit_Yp.editingFinished.connect(self.setSlider_Yp)
-        # self.lineEdit_Yp.returnPressed.connect(self.setSlider_Yp)
         self.horizontalSlider_Yp.valueChanged.connect(self.sliderValueChanged_Yp)
 
         self.lineEdit_Yn.editingFinished.connect(self.setSlider_Yn)
@@ -268,6 +251,51 @@ class AddSlabDialog(QDialog, SlabDialog):
         self.pushBtn_View.clicked.connect(self.viewSlab)
         self.pushBtn_AddSlab.clicked.connect(self.add_slab)
         self.pushBtn_SaveModel.clicked.connect(self.save_model)
+
+    @track_error
+    def get_config(self):
+        self.config_type = 'SLAB'
+        self.config_name = ['slab_center_x', 'slab_center_y', 'slab_center_z',
+                            'slab_alpha', 'slab_beta', 'slab_theta',
+                            'slab_th', 'slab_val',
+                            'len_1', 'len_2', 'len_3', 'len_4',
+                            'len_5', 'len_6', 'len_7', 'len_8',
+                            'window_width', 'window_height',
+                            'window_pos_X', 'window_pos_y']
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.lineEdit_SlabcenterX.setText(init_variables[0])
+        self.lineEdit_SlabcenterY.setText(init_variables[1])
+        self.lineEdit_SlabcenterZ.setText(init_variables[2])
+
+        self.lineEdit_SlabRalpha.setText(init_variables[3])
+        self.lineEdit_SlabRbeta.setText(init_variables[4])
+        self.lineEdit_SlabRtheta.setText(init_variables[5])
+
+        self.lineEdit_th.setText(init_variables[6])
+        self.lineEdit_val.setText(init_variables[7])
+
+        self.lineEdit_Yp.setText(init_variables[8])
+        self.lineEdit_XpYp.setText(init_variables[9])
+        self.lineEdit_Xp.setText(init_variables[10])
+        self.lineEdit_XpYn.setText(init_variables[11])
+        self.lineEdit_Yn.setText(init_variables[12])
+        self.lineEdit_XnYn.setText(init_variables[13])
+        self.lineEdit_Xn.setText(init_variables[14])
+        self.lineEdit_XnYp.setText(init_variables[15])
+
+        if init_variables[16]:
+            self.resize(init_variables[16], init_variables[17])
+        if init_variables[18]:
+            self.move(init_variables[18], init_variables[19])
+
+        self.setSlider_Yp()
+        self.setSlider_Yn()
+        self.setSlider_Xp()
+        self.setSlider_Xn()
+        self.setSlider_XpYp()
+        self.setSlider_XpYn()
+        self.setSlider_XnYp()
+        self.setSlider_XnYn()
 
     @track_error
     def control_points(self):
@@ -413,59 +441,67 @@ class AddSlabDialog(QDialog, SlabDialog):
 
     @track_error
     def setSlider_Yp(self):
-        Yp_val = float(self.lineEdit_Yp.text())
-        self.horizontalSlider_Yp.setMaximum(Yp_val * 1.5)
-        self.horizontalSlider_Yp.setMinimum(Yp_val * 0.5)
-        self.horizontalSlider_Yp.setValue(Yp_val)
+        if self.lineEdit_Yp.text():
+            Yp_val = float(self.lineEdit_Yp.text())
+            self.horizontalSlider_Yp.setMaximum(Yp_val * 1.5)
+            self.horizontalSlider_Yp.setMinimum(Yp_val * 0.5)
+            self.horizontalSlider_Yp.setValue(Yp_val)
 
     @track_error
     def setSlider_Yn(self):
-        Yn_val = float(self.lineEdit_Yn.text())
-        self.horizontalSlider_Yn.setMaximum(Yn_val * 1.5)
-        self.horizontalSlider_Yn.setMinimum(Yn_val * 0.5)
-        self.horizontalSlider_Yn.setValue(Yn_val)
+        if self.lineEdit_Yn.text():
+            Yn_val = float(self.lineEdit_Yn.text())
+            self.horizontalSlider_Yn.setMaximum(Yn_val * 1.5)
+            self.horizontalSlider_Yn.setMinimum(Yn_val * 0.5)
+            self.horizontalSlider_Yn.setValue(Yn_val)
 
     @track_error
     def setSlider_Xp(self):
-        Xp_val = float(self.lineEdit_Xp.text())
-        self.horizontalSlider_Xp.setMaximum(Xp_val * 1.5)
-        self.horizontalSlider_Xp.setMinimum(Xp_val * 0.5)
-        self.horizontalSlider_Xp.setValue(Xp_val)
+        if self.lineEdit_Xp.text():
+            Xp_val = float(self.lineEdit_Xp.text())
+            self.horizontalSlider_Xp.setMaximum(Xp_val * 1.5)
+            self.horizontalSlider_Xp.setMinimum(Xp_val * 0.5)
+            self.horizontalSlider_Xp.setValue(Xp_val)
 
     @track_error
     def setSlider_Xn(self):
-        Xn_val = float(self.lineEdit_Xn.text())
-        self.horizontalSlider_Xn.setMaximum(Xn_val * 1.5)
-        self.horizontalSlider_Xn.setMinimum(Xn_val * 0.5)
-        self.horizontalSlider_Xn.setValue(Xn_val)
+        if self.lineEdit_Xn.text():
+            Xn_val = float(self.lineEdit_Xn.text())
+            self.horizontalSlider_Xn.setMaximum(Xn_val * 1.5)
+            self.horizontalSlider_Xn.setMinimum(Xn_val * 0.5)
+            self.horizontalSlider_Xn.setValue(Xn_val)
 
     @track_error
     def setSlider_XpYp(self):
-        XpYp_val = float(self.lineEdit_XpYp.text())
-        self.horizontalSlider_XpYp.setMaximum(XpYp_val * 1.5)
-        self.horizontalSlider_XpYp.setMinimum(XpYp_val * 0.5)
-        self.horizontalSlider_XpYp.setValue(XpYp_val)
+        if self.lineEdit_XpYp.text():
+            XpYp_val = float(self.lineEdit_XpYp.text())
+            self.horizontalSlider_XpYp.setMaximum(XpYp_val * 1.5)
+            self.horizontalSlider_XpYp.setMinimum(XpYp_val * 0.5)
+            self.horizontalSlider_XpYp.setValue(XpYp_val)
 
     @track_error
     def setSlider_XpYn(self):
-        XpYn_val = float(self.lineEdit_XpYn.text())
-        self.horizontalSlider_XpYn.setMaximum(XpYn_val * 1.5)
-        self.horizontalSlider_XpYn.setMinimum(XpYn_val * 0.5)
-        self.horizontalSlider_XpYn.setValue(XpYn_val)
+        if self.lineEdit_XpYn.text():
+            XpYn_val = float(self.lineEdit_XpYn.text())
+            self.horizontalSlider_XpYn.setMaximum(XpYn_val * 1.5)
+            self.horizontalSlider_XpYn.setMinimum(XpYn_val * 0.5)
+            self.horizontalSlider_XpYn.setValue(XpYn_val)
 
     @track_error
     def setSlider_XnYp(self):
-        XnYp_val = float(self.lineEdit_XnYp.text())
-        self.horizontalSlider_XnYp.setMaximum(XnYp_val * 1.5)
-        self.horizontalSlider_XnYp.setMinimum(XnYp_val * 0.5)
-        self.horizontalSlider_XnYp.setValue(XnYp_val)
+        if self.lineEdit_XnYp.text():
+            XnYp_val = float(self.lineEdit_XnYp.text())
+            self.horizontalSlider_XnYp.setMaximum(XnYp_val * 1.5)
+            self.horizontalSlider_XnYp.setMinimum(XnYp_val * 0.5)
+            self.horizontalSlider_XnYp.setValue(XnYp_val)
 
     @track_error
     def setSlider_XnYn(self):
-        XnYn_val = float(self.lineEdit_XnYn.text())
-        self.horizontalSlider_XnYn.setMaximum(XnYn_val * 1.5)
-        self.horizontalSlider_XnYn.setMinimum(XnYn_val * 0.5)
-        self.horizontalSlider_XnYn.setValue(XnYn_val)
+        if self.lineEdit_XnYn.text():
+            XnYn_val = float(self.lineEdit_XnYn.text())
+            self.horizontalSlider_XnYn.setMaximum(XnYn_val * 1.5)
+            self.horizontalSlider_XnYn.setMinimum(XnYn_val * 0.5)
+            self.horizontalSlider_XnYn.setValue(XnYn_val)
 
     @track_error
     def sliderValueChanged_Yp(self):
@@ -515,35 +551,64 @@ class AddSlabDialog(QDialog, SlabDialog):
             value_show = float(self.horizontalSlider_XnYn.value())
             self.lineEdit_XnYn.setText(str(value_show))
 
+    @track_error_args
+    def closeEvent(self, event):
+        variables = [self.lineEdit_SlabcenterX.text(), self.lineEdit_SlabcenterY.text(), self.lineEdit_SlabcenterZ.text(),
+                     self.lineEdit_SlabRalpha.text(), self.lineEdit_SlabRbeta.text(), self.lineEdit_SlabRtheta.text(),
+                     self.lineEdit_th.text(), self.lineEdit_val.text(),
+                     self.lineEdit_Yp.text(), self.lineEdit_XpYp.text(),
+                     self.lineEdit_Xp.text(), self.lineEdit_XpYn.text(),
+                     self.lineEdit_Yn.text(), self.lineEdit_XnYn.text(),
+                     self.lineEdit_Xn.text(), self.lineEdit_XnYp.text(),
+                     self.rect().width(), self.rect().height(),
+                     self.pos().x(), self.pos().y()]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
+
 
 class AddEllipsoidDialog(QDialog, EllipsoidDialog):
     def __init__(self,path):
         super(AddEllipsoidDialog, self).__init__()
         self.setupUi(self)
+        self.get_config()
         self.project_dir = path
         self.label_project.setText('Current Project: ' + self.project_dir.split('/')[-1])
         self.pushBtn_SaveModel.setEnabled(False)
         self.pushBtn_View.setEnabled(False)
-
-        # for debugging
-        self.lineEdit_EllipsoidcenterX.setText('0')
-        self.lineEdit_EllipsoidcenterY.setText('0')
-        self.lineEdit_EllipsoidcenterZ.setText('3000')
-        self.lineEdit_EllipsoidRalpha.setText('0')
-        self.lineEdit_EllipsoidRbeta.setText('0')
-        self.lineEdit_EllipsoidRtheta.setText('0')
-
-        self.lineEdit_EllipsoidA.setText('1000')
-        self.lineEdit_EllipsoidB.setText('500')
-        self.lineEdit_EllipsoidC.setText('500')
-
-        self.lineEdit_val.setText('20')
 
         self.pushBtn_Model_in.clicked.connect(self.load_model)
         self.pushBtn_Mesh.clicked.connect(self.load_mesh)
         self.pushBtn_View.clicked.connect(self.viewEllipsoid)
         self.pushBtn_AddEllipsoid.clicked.connect(self.add_ellipsoid)
         self.pushBtn_SaveModel.clicked.connect(self.save_model)
+
+    @track_error
+    def get_config(self):
+        self.config_type = 'ELLIPSOID'
+        self.config_name = ['ellipsoid_center_x', 'ellipsoid_center_y', 'ellipsoid_center_z',
+                            'ellipsoid_alpha', 'ellipsoid_beta', 'ellipsoid_theta',
+                            'ellipsoid_a', 'ellipsoid_b', 'ellipsoid_c',
+                            'slab_val',
+                            'window_width', 'window_height',
+                            'window_pos_X', 'window_pos_y']
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.lineEdit_EllipsoidcenterX.setText(init_variables[0])
+        self.lineEdit_EllipsoidcenterY.setText(init_variables[1])
+        self.lineEdit_EllipsoidcenterZ.setText(init_variables[2])
+
+        self.lineEdit_EllipsoidRalpha.setText(init_variables[3])
+        self.lineEdit_EllipsoidRbeta.setText(init_variables[4])
+        self.lineEdit_EllipsoidRtheta.setText(init_variables[5])
+
+        self.lineEdit_EllipsoidA.setText(init_variables[6])
+        self.lineEdit_EllipsoidB.setText(init_variables[7])
+        self.lineEdit_EllipsoidC.setText(init_variables[8])
+
+        self.lineEdit_val.setText(init_variables[9])
+
+        if init_variables[10]:
+            self.resize(init_variables[10], init_variables[11])
+        if init_variables[12]:
+            self.move(init_variables[12], init_variables[13])
 
     @track_error
     def control_points(self):
@@ -595,6 +660,22 @@ class AddEllipsoidDialog(QDialog, EllipsoidDialog):
     @track_error
     def save_model(self):
         AddSlabDialog.save_model(self)
+
+    @track_error_args
+    def closeEvent(self, event):
+        variables = [self.lineEdit_EllipsoidcenterX.text(),
+                     self.lineEdit_EllipsoidcenterY.text(),
+                     self.lineEdit_EllipsoidcenterZ.text(),
+                     self.lineEdit_EllipsoidRalpha.text(),
+                     self.lineEdit_EllipsoidRbeta.text(),
+                     self.lineEdit_EllipsoidRtheta.text(),
+                     self.lineEdit_EllipsoidA.text(),
+                     self.lineEdit_EllipsoidB.text(),
+                     self.lineEdit_EllipsoidC.text(),
+                     self.lineEdit_val.text(),
+                     self.rect().width(), self.rect().height(),
+                     self.pos().x(), self.pos().y()]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
 
 
 class AddRandomEllipsoidDialog(QDialog, RandomEllipsoidDialog):

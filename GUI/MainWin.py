@@ -157,11 +157,12 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
     @track_error
     def open_project(self):
         # add checking project structure
-        self.project_dir = QFileDialog.getExistingDirectory(self,
-                                                            "Select a project folder",
-                                                            self.project_dir)
+        project_dir = QFileDialog.getExistingDirectory(self,
+                                                       "Select a project folder",
+                                                       self.project_dir)
 
-        if self.project_dir:
+        if project_dir:
+            self.project_dir = project_dir
             self.after_open_proj()
 
     @track_error
@@ -334,6 +335,7 @@ class FracMainWindow(QMainWindow, Ui_MainWindow):
 
     # other GUI functions
     def tab_close(self, index):
+        self.tabWidget.widget(index).tab_removed()
         self.tabWidget.removeTab(index)
 
     def check_current_tab(self):

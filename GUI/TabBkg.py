@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QTabWidget, QTableWidgetItem, QPushButton
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtCore import Qt
 
 from UI_init.Ui_tabBkg import Ui_tab_bkg as Ui_TabBkg
 
@@ -12,6 +13,7 @@ from functions.utils import read_mesh_file, formRectMeshConnectivity
 from functions.addSurface import addSurface
 from functions.wellpath2edge import wellpath2edge
 from functions.decorators import track_error, track_error_args
+from functions.config_setting import get_setting_values, set_setting_values
 
 import os
 import numpy as np
@@ -22,6 +24,7 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
     def __init__(self, path):
         super(AddTabBkg, self).__init__()
         self.setupUi(self)
+        self.get_config()
         self.project_dir = path
 
         self.renew_tab_well_table(0, 'Wellpath points')
@@ -35,10 +38,12 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
         self.groupBox_CellCon.setEnabled(False)
         self.groupBox_edgeCon.setEnabled(False)
 
+        self.tableWidget_layered.horizontalHeader().resizeSection(0, 200)
+
         self.pushButton_meshBrowser.clicked.connect(self.load_mesh)
 
         # cellCon
-        self.lineEdit_numLayers.editingFinished.connect(self.layer_table_init)
+        self.lineEdit_numLayers.editingFinished.connect(self.layers_table_init)
         self.pushButton_build.clicked.connect(self.build_model)
         self.pushButton_viewModel.clicked.connect(self.view_model)
         self.pushButton_save_cellCon.clicked.connect(self.save_model)
@@ -57,6 +62,31 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
         # self.groupBox_edgeCon.toggled.connect(self.build_edgeCon)
 
     @track_error
+    def get_config(self):
+        self.config_type = 'BACKGROUND'
+        self.config_name = ['surf_folder', 'num_layers',
+                            'surf_paths', 'values',
+                            'well_points', 'well_edgeCon', 'interval']
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.surf_folder = init_variables[0]
+        self.lineEdit_numLayers.setText(init_variables[1])
+        if self.lineEdit_numLayers:
+            self.layers_table_init()
+        self.surf_paths = init_variables[2]
+        self.values = init_variables[3]
+        if self.surf_paths:
+            for i in len(self.surf_paths):
+                self.tableWidget_layered.item(i, 2).setText(self.surf_paths[i])
+        if self.values:
+            for i in len(self.surf_paths):
+                self.tableWidget_layered.item(i, 0).setText(self.values[i])
+        self.lineEdit_Npoints.setText(init_variables[4])
+        if self.lineEdit_Npoints:
+            self.tab_well_table_update()
+        self.lineEdit_edgeCon.setText(init_variables[5])
+        self.lineEdit_int.setText(init_variables[6])
+
+    @track_error
     def load_mesh(self):
         mesh_select_win = SelectWin(os.path.join(self.project_dir, 'Mesh'), 'mesh')
         mesh_select_win.exec()
@@ -68,36 +98,44 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
             self.groupBox_CellCon.setEnabled(True)
 
     @track_error
-    def layer_table_init(self):
+    def layers_table_init(self):
         self.layers_num = int(self.lineEdit_numLayers.text())
-        self.tableWidget_layered.setRowCount(self.layers_num)
-        self.Push = [0] * (self.layers_num - 1)
-        for i in range(self.layers_num):
-            item = QTableWidgetItem()
-            self.tableWidget_layered.setVerticalHeaderItem(i, item)
-            self.tableWidget_layered.verticalHeader().setDefaultSectionSize(30)
-            self.tableWidget_layered.verticalHeader().setMinimumSectionSize(20)
-            self.tableWidget_layered.verticalHeaderItem(i).setText(("Layer" + str(i + 1)))
-            self.tableWidget_layered.setItem(i, 0, item)
+        if isinstance(self.layers_num, int):
+            self.tableWidget_layered.setRowCount(self.layers_num)
+            self.Push = [0] * (self.layers_num - 1)
+            for i in range(self.layers_num):
+                item_Vheader = QTableWidgetItem()
+                item_Vheader.setTextAlignment(Qt.AlignCenter)
+                self.tableWidget_layered.setVerticalHeaderItem(i, item_Vheader)
+                self.tableWidget_layered.verticalHeader().setDefaultSectionSize(30)
+                self.tableWidget_layered.verticalHeader().setMinimumSectionSize(20)
+                self.tableWidget_layered.verticalHeaderItem(i).setText(("Layer" + str(i + 1)))
+                self.tableWidget_layered.setItem(i, 0, item_Vheader)
 
-            if i < self.layers_num - 1:
-                self.Push[i] = QPushButton()
-                self.Push[i].setText('Load')
-                self.Push[i].setObjectName(str(i))
-                # combox.setStyleSheet("QPushButton{background:white}")
-                self.tableWidget_layered.setCellWidget(i, 1, self.Push[i])
-
-        for i in range(len(self.Push)):
-            self.Push[i].clicked.connect(self.find_surface_config)
+                if i < self.layers_num - 1:
+                    self.Push[i] = QPushButton()
+                    self.Push[i].setText('Load')
+                    self.Push[i].setObjectName(str(i))
+                    # combox.setStyleSheet("QPushButton{background:white}")
+                    self.tableWidget_layered.setCellWidget(i, 1, self.Push[i])
+            usless_item = QTableWidgetItem()
+            usless_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self.tableWidget_layered.setItem(self.layers_num, 2, usless_item)
+            self.tableWidget_layered.setItem(self.layers_num, 3, usless_item)
+            for i in range(len(self.Push)):
+                self.Push[i].clicked.connect(self.find_surface_config)
 
     @track_error
     def find_surface_config(self):
         ind = int(self.sender().objectName())
-        fileName = QFileDialog.getOpenFileName(self.Push[ind], 'Load Surface', '.\\', '*.txt')
-        if fileName[0]:
+        surf_file, _ = QFileDialog.getOpenFileName(self.Push[ind],
+                                                   'Load Surface File',
+                                                   self.surf_folder,
+                                                   '*.txt')
+        if surf_file:
             item = QTableWidgetItem()
             self.tableWidget_layered.setItem(ind, 2, item)
-            self.tableWidget_layered.item(ind, 2).setText(fileName[0])
+            self.tableWidget_layered.item(ind, 2).setText(surf_file)
 
     @track_error_args
     def load_surface_config(self, surface_config_path):
@@ -418,3 +456,19 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
             edgeCon_ctrl_points = np.ones((tab_wellpath_points.tableWidget.rowCount())) * float(
                 self.lineEdit_edgeCon.text())
             tab_wellpath_points.points_to_table_column(edgeCon_ctrl_points, 3)
+
+    @track_error
+    def get_values_surf(self):
+        for i in range(self.tableWidget_layered.rowCount()):
+            if self.values:
+                self.values[i] = float(self.tableWidget_layered.item(i, 0).text())
+            if self.surf_paths:
+                self.surf_paths[i] = (self.tableWidget_layered.item(i, 2).text())
+
+    @track_error
+    def tab_removed(self):
+        self.get_values_surf()
+        variables = [self.surf_folder, self.lineEdit_numLayers.text(),
+                     self.surf_paths, self.values,
+                     self.lineEdit_Npoints.text(), self.lineEdit_edgeCon.text(), self.lineEdit_int.text()]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
