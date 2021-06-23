@@ -12,6 +12,7 @@ from GUI.XYZTable import XYZTable
 
 from functions.rcvsetting import rcvsetting
 from functions.decorators import track_error, track_error_args
+from functions.config_setting import get_setting_values, set_setting_values
 
 import os
 import numpy as np
@@ -65,6 +66,7 @@ class AddTabSurvey(QTabWidget, Ui_tab_survey):
     def __init__(self, path):
         super(AddTabSurvey, self).__init__()
         self.setupUi(self)
+        self.get_config()
         self.splitter.setStretchFactor(0, 3)
         self.splitter.setStretchFactor(1, 7)
         # self.splitter.setSizes([self.splitter.size().width() * 0.3,
@@ -111,6 +113,22 @@ class AddTabSurvey(QTabWidget, Ui_tab_survey):
         self.pushButton_viewSurvey.clicked.connect(self.view_survey)
         self.pushButton_viewWellpaths.clicked.connect(self.view_added_wellpaths)
         self.pushButton_clearView.clicked.connect(self.clear_view)
+
+    @track_error
+    def get_config(self):
+        self.config_type = 'SURVEY'
+        self.config_name = ['src_num', 'src_interval',
+                            'rcv_x_min', 'rcv_x_max', 'rcv_x_interval',
+                            'rcv_y_min', 'rcv_y_max', 'rcv_y_interval']
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.lineEdit_srcnum.setText(init_variables[0])
+        self.lineEdit_srcint.setText(init_variables[1])
+        self.lineEdit_rcvXmin.setText(init_variables[2])
+        self.lineEdit_rcvXmax.setText(init_variables[3])
+        self.lineEdit_rcvXint.setText(init_variables[4])
+        self.lineEdit_rcvYmin.setText(init_variables[5])
+        self.lineEdit_rcvYmax.setText(init_variables[6])
+        self.lineEdit_rcvYint.setText(init_variables[7])
 
     @track_error
     def topo_init(self):
@@ -464,3 +482,10 @@ class AddTabSurvey(QTabWidget, Ui_tab_survey):
                                 'Load topography finished!',
                                 'Elevation (Z) will be updated by the loaded topography data.',
                                 QMessageBox.Yes)
+
+    @track_error
+    def tab_removed(self):
+        variables = [self.lineEdit_srcnum.text(), self.lineEdit_srcint.text(),
+                     self.lineEdit_rcvXmin.text(), self.lineEdit_rcvXmax.text(), self.lineEdit_rcvXint.text(),
+                     self.lineEdit_rcvYmin.text(), self.lineEdit_rcvYmax.text(), self.lineEdit_rcvYint.text()]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)

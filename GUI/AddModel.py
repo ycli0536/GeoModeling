@@ -686,27 +686,6 @@ class AddRandomEllipsoidDialog(QDialog, RandomEllipsoidDialog):
         self.label_project.setText('Current Project: ' + self.project_dir.split('/')[-1])
         self.pushBtn_View.setEnabled(False)
 
-        # for debugging
-        self.lineEdit_count.setText('3')
-        self.lineEdit_centerXmin.setText('0')
-        self.lineEdit_centerYmin.setText('0')
-        self.lineEdit_centerZmin.setText('-20')
-        self.lineEdit_centerXmax.setText('5')
-        self.lineEdit_centerYmax.setText('5')
-        self.lineEdit_centerZmax.setText('-10')
-        self.lineEdit_Ralphamin.setText('0')
-        self.lineEdit_Rbetamin.setText('0')
-        self.lineEdit_Rthetamin.setText('0')
-        self.lineEdit_Ralphamax.setText('45')
-        self.lineEdit_Rbetamax.setText('45')
-        self.lineEdit_Rthetamax.setText('45')
-        self.lineEdit_EllipsoidAmin.setText('2')
-        self.lineEdit_EllipsoidBmin.setText('2')
-        self.lineEdit_EllipsoidCmin.setText('2')
-        self.lineEdit_EllipsoidAmax.setText('2')
-        self.lineEdit_EllipsoidBmax.setText('2')
-        self.lineEdit_EllipsoidCmax.setText('2')
-        self.lineEdit_valmin.setText('2')
         self.checkBox_centerPoints.stateChanged.connect(self.random_filter)
         self.checkBox_rotation.stateChanged.connect(self.random_filter)
         self.checkBox_ABCaxis.stateChanged.connect(self.random_filter)
@@ -715,6 +694,74 @@ class AddRandomEllipsoidDialog(QDialog, RandomEllipsoidDialog):
         self.pushBtn_Mesh.clicked.connect(self.load_mesh)
         self.pushBtn_Gen.clicked.connect(self.randomGen)
         self.pushBtn_View.clicked.connect(self.viewEllipsoid)
+
+        self.get_config()
+
+    @track_error
+    def get_config(self):
+        self.config_type = 'RANDOME_ELLIPSOID'
+        self.config_name = ['model_count', 'center_point', 'rotation', 'axis_len', 'value',
+                            ['center_x_min', 'center_x_max'],
+                            ['center_y_min', 'center_y_max'],
+                            ['center_z_min', 'center_z_max'],
+                            ['alpha_min', 'alpha_max'],
+                            ['beta_min', 'beta_max'],
+                            ['theta_min', 'theta_max'],
+                            ['axis_a_min', 'axis_a_max'],
+                            ['axis_b_min', 'axis_b_max'],
+                            ['axis_c_min', 'axis_c_max'],
+                            ['val_min', 'val_max'],
+                            'window_width', 'window_height',
+                            'window_pos_x', 'window_pos_y']
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.lineEdit_count.setText(init_variables[0])
+        if init_variables[1]:
+            self.checkBox_centerPoints.setCheckState(int(init_variables[1]))
+        if init_variables[2]:
+            self.checkBox_rotation.setCheckState(int(init_variables[2]))
+        if init_variables[3]:
+            self.checkBox_ABCaxis.setCheckState(int(init_variables[3]))
+        if init_variables[4]:
+            self.checkBox_val.setCheckState(int(init_variables[4]))
+
+        if init_variables[5]:
+            self.lineEdit_centerXmin.setText(init_variables[5][0])
+            self.lineEdit_centerXmax.setText(init_variables[5][1])
+        if init_variables[6]:
+            self.lineEdit_centerYmin.setText(init_variables[6][0])
+            self.lineEdit_centerYmax.setText(init_variables[6][1])
+        if init_variables[7]:
+            self.lineEdit_centerZmin.setText(init_variables[7][0])
+            self.lineEdit_centerZmax.setText(init_variables[7][1])
+
+        if init_variables[8]:
+            self.lineEdit_Ralphamin.setText(init_variables[8][0])
+            self.lineEdit_Ralphamax.setText(init_variables[8][1])
+        if init_variables[9]:
+            self.lineEdit_Rbetamin.setText(init_variables[9][0])
+            self.lineEdit_Rbetamax.setText(init_variables[9][1])
+        if init_variables[10]:
+            self.lineEdit_Rthetamin.setText(init_variables[10][0])
+            self.lineEdit_Rthetamax.setText(init_variables[10][1])
+
+        if init_variables[11]:
+            self.lineEdit_EllipsoidAmin.setText(init_variables[11][0])
+            self.lineEdit_EllipsoidAmax.setText(init_variables[11][1])
+        if init_variables[12]:
+            self.lineEdit_EllipsoidBmin.setText(init_variables[12][0])
+            self.lineEdit_EllipsoidBmax.setText(init_variables[12][1])
+        if init_variables[13]:
+            self.lineEdit_EllipsoidCmin.setText(init_variables[13][0])
+            self.lineEdit_EllipsoidCmax.setText(init_variables[13][1])
+
+        if init_variables[14]:
+            self.lineEdit_valmin.setText(init_variables[14][0])
+            self.lineEdit_valmax.setText(init_variables[14][1])
+
+        if init_variables[15]:
+            self.resize(init_variables[15], init_variables[16])
+        if init_variables[17]:
+            self.move(init_variables[17], init_variables[18])
 
     @track_error
     def random_filter(self):
@@ -918,6 +965,27 @@ class AddRandomEllipsoidDialog(QDialog, RandomEllipsoidDialog):
             self.showWin.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, model_in)
             self.showWin.show()
 
+    @track_error_args
+    def closeEvent(self, event):
+        variables = [self.lineEdit_count.text(),
+                     str(self.checkBox_centerPoints.checkState()),
+                     str(self.checkBox_rotation.checkState()),
+                     str(self.checkBox_ABCaxis.checkState()),
+                     str(self.checkBox_val.checkState()),
+                     [self.lineEdit_centerXmin.text(), self.lineEdit_centerXmax.text()],
+                     [self.lineEdit_centerYmin.text(), self.lineEdit_centerYmax.text()],
+                     [self.lineEdit_centerZmin.text(), self.lineEdit_centerZmax.text()],
+                     [self.lineEdit_Ralphamin.text(), self.lineEdit_Ralphamax.text()],
+                     [self.lineEdit_Rbetamin.text(), self.lineEdit_Rbetamax.text()],
+                     [self.lineEdit_Rthetamin.text(), self.lineEdit_Rthetamax.text()],
+                     [self.lineEdit_EllipsoidAmin.text(), self.lineEdit_EllipsoidAmax.text()],
+                     [self.lineEdit_EllipsoidBmin.text(), self.lineEdit_EllipsoidBmax.text()],
+                     [self.lineEdit_EllipsoidCmin.text(), self.lineEdit_EllipsoidCmax.text()],
+                     [self.lineEdit_valmin.text(), self.lineEdit_valmax.text()],
+                     self.rect().width(), self.rect().height(),
+                     self.pos().x(), self.pos().y()]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
+
 
 class AddRandomSlabDialog(QDialog, RandomSlabDialog):
     def __init__(self, path):
@@ -928,26 +996,6 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
         self.pushBtn_View.setEnabled(False)
         self.normal = 'x'
 
-        # for debugging
-        self.lineEdit_count.setText('3')
-        self.lineEdit_SlabcenterXmin.setText('-400')
-        self.lineEdit_SlabcenterYmin.setText('-400')
-        self.lineEdit_SlabcenterZmin.setText('-400')
-        self.lineEdit_SlabcenterXmax.setText('400')
-        self.lineEdit_SlabcenterYmax.setText('400')
-        self.lineEdit_SlabcenterZmax.setText('400')
-        self.lineEdit_SlabRalphamin.setText('0')
-        self.lineEdit_SlabRbetamin.setText('0')
-        self.lineEdit_SlabRthetamin.setText('0')
-        self.lineEdit_SlabRalphamax.setText('45')
-        self.lineEdit_SlabRbetamax.setText('45')
-        self.lineEdit_SlabRthetamax.setText('45')
-        # self.lineEdit_direction1min.setText('100')
-        # self.lineEdit_direction1max.setText('300')
-        self.lineEdit_thmin.setText('100')
-        self.lineEdit_thmax.setText('300')
-        self.lineEdit_valmin.setText('3')
-        self.lineEdit_valmax.setText('6')
         self.checkBox_rotation.stateChanged.connect(self.random_filter)
         self.checkBox_centerPoints.stateChanged.connect(self.random_filter)
         self.checkBox_th.stateChanged.connect(self.random_filter)
@@ -957,6 +1005,102 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
         self.pushBtn_Mesh.clicked.connect(self.load_mesh)
         self.pushBtn_View.clicked.connect(self.viewSlab)
         self.pushBtn_Gen.clicked.connect(self.randomGen)
+
+        self.get_config()
+
+    @track_error
+    def get_config(self):
+        self.config_type = 'RANDOME_SLAB'
+        self.config_name = ['model_count', 'center_point', 'rotation',  # 0, 1, 2
+                            'thickness', 'value', 'axis_len',  # 3, 4, 5
+                            ['center_x_min', 'center_x_max'],  # 6
+                            ['center_y_min', 'center_y_max'],  # 7
+                            ['center_z_min', 'center_z_max'],  # 8
+                            ['alpha_min', 'alpha_max'],  # 9
+                            ['beta_min', 'beta_max'],  # 10
+                            ['theta_min', 'theta_max'],  # 11
+                            ['len_1_min', 'len_1_max'],  # 12
+                            ['len_2_min', 'len_2_max'],  # 13
+                            ['len_3_min', 'len_3_max'],  # 14
+                            ['len_4_min', 'len_4_max'],  # 15
+                            ['len_5_min', 'len_5_max'],  # 16
+                            ['len_6_min', 'len_6_max'],  # 17
+                            ['len_7_min', 'len_7_max'],  # 18
+                            ['len_8_min', 'len_8_max'],  # 19
+                            ['th_min', 'th_max'],  # 20
+                            ['val_min', 'val_max'],  # 21
+                            'window_width', 'window_height',  # 22, 23
+                            'window_pos_x', 'window_pos_y']  # 24, 25
+        init_variables = get_setting_values(self.config_type, self.config_name)
+        self.lineEdit_count.setText(init_variables[0])
+        if init_variables[1]:
+            self.checkBox_centerPoints.setCheckState(int(init_variables[1]))
+        if init_variables[2]:
+            self.checkBox_rotation.setCheckState(int(init_variables[2]))
+        if init_variables[3]:
+            self.checkBox_th.setCheckState(int(init_variables[3]))
+        if init_variables[4]:
+            self.checkBox_val.setCheckState(int(init_variables[4]))
+        if init_variables[5]:
+            self.checkBox_directionL.setCheckState(int(init_variables[5]))
+
+        if init_variables[6]:
+            self.lineEdit_SlabcenterXmin.setText(init_variables[6][0])
+            self.lineEdit_SlabcenterXmax.setText(init_variables[6][1])
+        if init_variables[7]:
+            self.lineEdit_SlabcenterYmin.setText(init_variables[7][0])
+            self.lineEdit_SlabcenterYmax.setText(init_variables[7][1])
+        if init_variables[8]:
+            self.lineEdit_SlabcenterZmin.setText(init_variables[8][0])
+            self.lineEdit_SlabcenterXmax.setText(init_variables[8][1])
+
+        if init_variables[9]:
+            self.lineEdit_SlabRalphamin.setText(init_variables[9][0])
+            self.lineEdit_SlabRalphamax.setText(init_variables[9][1])
+        if init_variables[10]:
+            self.lineEdit_SlabRbetamin.setText(init_variables[10][0])
+            self.lineEdit_SlabRbetamax.setText(init_variables[10][1])
+        if init_variables[11]:
+            self.lineEdit_SlabRthetamin.setText(init_variables[11][0])
+            self.lineEdit_SlabRthetamax.setText(init_variables[11][1])
+
+        if init_variables[12]:
+            self.lineEdit_direction1min.setText(init_variables[12][0])
+            self.lineEdit_direction1max.setText(init_variables[12][1])
+        if init_variables[13]:
+            self.lineEdit_direction2min.setText(init_variables[13][0])
+            self.lineEdit_direction2max.setText(init_variables[13][1])
+        if init_variables[14]:
+            self.lineEdit_direction3min.setText(init_variables[14][0])
+            self.lineEdit_direction3max.setText(init_variables[14][1])
+        if init_variables[15]:
+            self.lineEdit_direction4min.setText(init_variables[15][0])
+            self.lineEdit_direction4max.setText(init_variables[15][1])
+        if init_variables[16]:
+            self.lineEdit_direction5min.setText(init_variables[16][0])
+            self.lineEdit_direction5max.setText(init_variables[16][1])
+        if init_variables[17]:
+            self.lineEdit_direction6min.setText(init_variables[17][0])
+            self.lineEdit_direction6max.setText(init_variables[17][1])
+        if init_variables[18]:
+            self.lineEdit_direction7min.setText(init_variables[18][0])
+            self.lineEdit_direction7max.setText(init_variables[18][1])
+        if init_variables[19]:
+            self.lineEdit_direction8min.setText(init_variables[19][0])
+            self.lineEdit_direction8max.setText(init_variables[19][1])
+
+        if init_variables[20]:
+            self.lineEdit_thmin.setText(init_variables[20][0])
+            self.lineEdit_thmin.setText(init_variables[20][1])
+
+        if init_variables[21]:
+            self.lineEdit_valmin.setText(init_variables[21][0])
+            self.lineEdit_valmax.setText(init_variables[21][1])
+
+        if init_variables[22]:
+            self.resize(init_variables[22], init_variables[23])
+        if init_variables[24]:
+            self.move(init_variables[24], init_variables[25])
 
     @track_error
     def random_filter(self):
@@ -1248,3 +1392,31 @@ class AddRandomSlabDialog(QDialog, RandomSlabDialog):
             self.showWin = pyvistaWin()
             self.showWin.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, model_in)
             self.showWin.show()
+
+    @track_error_args
+    def closeEvent(self, event):
+        variables = [self.lineEdit_count.text(),  # 0
+                     str(self.checkBox_centerPoints.checkState()),  # 1
+                     str(self.checkBox_rotation.checkState()),  # 2
+                     str(self.checkBox_th.checkState()),  # 3
+                     str(self.checkBox_val.checkState()),  # 4
+                     str(self.checkBox_directionL.checkState()),  # 5
+                     [self.lineEdit_SlabcenterXmin.text(), self.lineEdit_SlabcenterXmax.text()],  # 6
+                     [self.lineEdit_SlabcenterYmin.text(), self.lineEdit_SlabcenterYmax.text()],  # 7
+                     [self.lineEdit_SlabcenterZmin.text(), self.lineEdit_SlabcenterXmax.text()],  # 8
+                     [self.lineEdit_SlabRalphamin.text(), self.lineEdit_SlabRalphamax.text()],  # 9
+                     [self.lineEdit_SlabRbetamin.text(), self.lineEdit_SlabRbetamax.text()],  # 10
+                     [self.lineEdit_SlabRthetamin.text(), self.lineEdit_SlabRthetamax.text()],  # 11
+                     [self.lineEdit_direction1min.text(), self.lineEdit_direction1max.text()],  # 12
+                     [self.lineEdit_direction2min.text(), self.lineEdit_direction2max.text()],  # 13
+                     [self.lineEdit_direction3min.text(), self.lineEdit_direction3max.text()],  # 14
+                     [self.lineEdit_direction4min.text(), self.lineEdit_direction4max.text()],  # 15
+                     [self.lineEdit_direction5min.text(), self.lineEdit_direction5max.text()],  # 16
+                     [self.lineEdit_direction6min.text(), self.lineEdit_direction6max.text()],  # 17
+                     [self.lineEdit_direction7min.text(), self.lineEdit_direction7max.text()],  # 18
+                     [self.lineEdit_direction8min.text(), self.lineEdit_direction8max.text()],  # 19
+                     [self.lineEdit_thmin.text(), self.lineEdit_thmax.text()],  # 20
+                     [self.lineEdit_valmin.text(), self.lineEdit_valmax.text()],  # 21
+                     self.rect().width(), self.rect().height(),  # 22, 23
+                     self.pos().x(), self.pos().y()]  # 24, 25
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
