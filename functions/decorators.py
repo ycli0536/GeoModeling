@@ -13,7 +13,8 @@ def track_error(func):
 def track_error_args(func):
     def wrapper(self, *args, **kwargs):
         try:
-            func(self, *args, **kwargs)
+            result = func(self, *args, **kwargs)
+            return result
         except Exception as e:
             QMessageBox.information(self, 'Test Error', str(e), QMessageBox.Yes)
     return wrapper
