@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSignal, Qt, QSettings
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QDialog
 from UI_init.Ui_ViewWin import Ui_MainWindow
 from UI_init.Ui_CropModels import Ui_Dialog as Ui_CropDialog
@@ -222,6 +222,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_Add.triggered.connect(self.add_mesh_model)
         self.commandLinkButton_mesh.clicked.connect(self.load_mesh)
         self.commandLinkButton_model.clicked.connect(self.load_model)
+        self.action_SaveScreenshot.triggered.connect(self.save_screenshot)
 
         # menu View
         self.action_PyVista.triggered.connect(self.display_model_pyvista)
@@ -261,6 +262,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.config_type = 'VIEW'
         self.config_name = ['mesh_path', 'model_path',
                             'points_path', 'lines_path',
+                            'screenshot_path',
                             'window_width', 'window_height',
                             'window_pos_X', 'window_pos_y',
                             'showMaximized']
@@ -269,11 +271,12 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.label_ModelPath.setText(init_variables[1])
         self.points_path = init_variables[2]
         self.lines_path = init_variables[3]
-        if init_variables[4]:
-            self.resize(init_variables[4], init_variables[5])
-        if init_variables[6]:
-            self.move(init_variables[6], init_variables[7])
-        if init_variables[8]:
+        self.screenshot_path = init_variables[4]
+        if init_variables[5]:
+            self.resize(init_variables[5], init_variables[6])
+        if init_variables[7]:
+            self.move(init_variables[7], init_variables[8])
+        if init_variables[9]:
             self.showMaximized()
         self.mesh_path = self.label_MeshPath.text()
         self.model_path = self.label_ModelPath.text()
@@ -287,6 +290,14 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                                 width=0.05)
                                 # interactive=True)
         self.build_mesh_model()
+
+    @track_error
+    def save_screenshot(self):
+        self.screenshot_path, _ = QFileDialog.getSaveFileName(self, 'Save screenshot at current camera position',
+                                                              self.screenshot_path,
+                                                              '*.png')
+        if self.screenshot_path:
+            self.plotter.screenshot(self.screenshot_path, transparent_background=False)
 
     @track_error
     def load_mesh(self):
@@ -640,7 +651,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         variables = [self.label_MeshPath.text(), self.label_ModelPath.text(),
-                     self.points_path, self.lines_path,
+                     self.points_path, self.lines_path, self.screenshot_path,
                      self.rect().width(), self.rect().height(),
                      self.pos().x(), self.pos().y(),
                      int(self.isMaximized())]

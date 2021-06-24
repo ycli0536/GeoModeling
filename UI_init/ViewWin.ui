@@ -92,6 +92,9 @@
     </property>
     <addaction name="action_Load"/>
     <addaction name="action_Add"/>
+    <addaction name="separator"/>
+    <addaction name="action_SaveScreenshot"/>
+    <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -331,6 +334,11 @@
   <action name="action_Add">
    <property name="text">
     <string>Add</string>
+   </property>
+  </action>
+  <action name="action_SaveScreenshot">
+   <property name="text">
+    <string>Save Screenshot</string>
    </property>
   </action>
  </widget>

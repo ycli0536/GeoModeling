@@ -142,6 +142,7 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
                                                    self.surf_folder,
                                                    '*.txt')
         if surf_file:
+            self.surf_folder = surf_file
             self.tableWidget_layered.item(ind, 2).setText(surf_file)
 
     @track_error_args
