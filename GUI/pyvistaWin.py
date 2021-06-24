@@ -1,7 +1,8 @@
 from PyQt5.QtCore import pyqtSignal, Qt, QSettings
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QDialog
 from UI_init.Ui_ViewWin import Ui_MainWindow
-from UI_init.Ui_CropModels import Ui_Dialog
+from UI_init.Ui_CropModels import Ui_Dialog as Ui_CropDialog
+from UI_init.Ui_thresholdWin import Ui_Dialog as Ui_ThresholdDialog
 from functions.utils import read_mesh_file, CellIndex2PointXYZ
 from functions.decorators import track_error, track_error_args
 from functions.config_setting import get_setting_values, set_setting_values
@@ -11,7 +12,7 @@ import numpy as np
 import pyvista as pv
 
 
-class CropModelDialog(QDialog, Ui_Dialog):
+class CropModelDialog(QDialog, Ui_CropDialog):
     signal = pyqtSignal(np.ndarray, np.ndarray, np.ndarray, np.ndarray)
 
     def __init__(self, nodeX, nodeY, nodeZ, model_in):
@@ -107,6 +108,88 @@ class CropModelDialog(QDialog, Ui_Dialog):
         set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
 
 
+class ThresholdDialog(QDialog, Ui_ThresholdDialog):
+    signal = pyqtSignal(float, float)
+
+    def __init__(self, model_in):
+        super(ThresholdDialog, self).__init__()
+        self.setupUi(self)
+        self.get_config()
+        self.model_in = model_in
+        self.horizontalSlider_max.setMaximum(self.model_in.max())
+        self.horizontalSlider_max.setMinimum(self.model_in.min())
+        self.horizontalSlider_min.setMaximum(self.model_in.max())
+        self.horizontalSlider_min.setMinimum(self.model_in.min())
+        # self.horizontalSlider_max.setSingleStep((self.model_in.max() - self.model_in.min()) / 100)
+        # self.horizontalSlider_min.setSingleStep((self.model_in.max() - self.model_in.min()) / 100)
+        self.lineEdit_max.setText(str(self.model_in.max()))
+        self.lineEdit_min.setText(str(self.model_in.min()))
+        self.horizontalSlider_max.setValue(self.model_in.max())
+
+        self.lineEdit_max.editingFinished.connect(self.update_slider_max)
+        self.lineEdit_min.editingFinished.connect(self.update_slider_min)
+        self.lineEdit_max.editingFinished.connect(self.signal_emit)
+        self.lineEdit_min.editingFinished.connect(self.signal_emit)
+        self.horizontalSlider_max.valueChanged.connect(self.slider_value_changed_max)
+        self.horizontalSlider_min.valueChanged.connect(self.slider_value_changed_min)
+        self.horizontalSlider_max.sliderReleased.connect(self.signal_emit)
+        self.horizontalSlider_min.sliderReleased.connect(self.signal_emit)
+
+    @track_error
+    def get_config(self):
+        self.config_type = 'THRESHOLD'
+        self.config_name = ['window_width', 'window_height',
+                            'window_pos_x', 'window_pos_y']
+        init_variables = get_setting_values(self.config_type, self.config_name)
+
+        if init_variables[0]:
+            self.resize(init_variables[0], init_variables[1])
+        if init_variables[2]:
+            self.move(init_variables[2], init_variables[3])
+
+    @track_error
+    def update_slider_max(self):
+        if self.lineEdit_max.text():
+            max_val = float(self.lineEdit_max.text())
+            self.horizontalSlider_max.setValue(max_val)
+
+    @track_error
+    def update_slider_min(self):
+        if self.lineEdit_min.text():
+            min_val = float(self.lineEdit_min.text())
+            self.horizontalSlider_min.setValue(min_val)
+
+    @track_error
+    def slider_value_changed_max(self):
+        if self.lineEdit_max.text():
+            value_show = float(self.horizontalSlider_max.value())
+            self.lineEdit_max.setText(str(value_show))
+
+    @track_error
+    def slider_value_changed_min(self):
+        if self.lineEdit_min.text():
+            value_show = float(self.horizontalSlider_min.value())
+            self.lineEdit_min.setText(str(value_show))
+
+    @track_error
+    def signal_emit(self):
+        self.signal.emit(float(self.lineEdit_min.text()), float(self.lineEdit_max.text()))
+
+    @track_error
+    def accepted(self):
+        self.signal.emit(float(self.lineEdit_min.text()), float(self.lineEdit_max.text()))
+
+    @track_error
+    def rejected(self):
+        self.signal.emit(self.model_in.min(), self.model_in.min())
+
+    @track_error_args
+    def closeEvent(self, event):
+        variables = [self.rect().width(), self.rect().height(),
+                     self.pos().x(), self.pos().y()]
+        set_setting_values(module_name=self.config_type, variable_names=self.config_name, variables=variables)
+
+
 class pyvistaWin(MainWindow, Ui_MainWindow):
     def __init__(self):
         super(pyvistaWin, self).__init__()
@@ -122,7 +205,6 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.reverse_xy_flag = False
 
         self.add_mode = False
-        self.grids = pv.MultiBlock()
         self.action_Threshold.setEnabled(False)
 
         self.nodeX = None
@@ -178,32 +260,48 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     def get_config(self):
         self.config_type = 'VIEW'
         self.config_name = ['mesh_path', 'model_path',
+                            'points_path', 'lines_path',
                             'window_width', 'window_height',
                             'window_pos_X', 'window_pos_y',
                             'showMaximized']
         init_variables = get_setting_values(self.config_type, self.config_name)
         self.label_MeshPath.setText(init_variables[0])
         self.label_ModelPath.setText(init_variables[1])
-        if init_variables[2]:
-            self.resize(init_variables[2], init_variables[3])
+        self.points_path = init_variables[2]
+        self.lines_path = init_variables[3]
         if init_variables[4]:
-            self.move(init_variables[4], init_variables[5])
+            self.resize(init_variables[4], init_variables[5])
         if init_variables[6]:
+            self.move(init_variables[6], init_variables[7])
+        if init_variables[8]:
             self.showMaximized()
         self.mesh_path = self.label_MeshPath.text()
         self.model_path = self.label_ModelPath.text()
+        self.scalar_args = dict(title_font_size=20,
+                                label_font_size=16,
+                                vertical=True,
+                                shadow=True,
+                                position_x=0.9,
+                                position_y=0.1,
+                                height=0.8,
+                                width=0.05)
+                                # interactive=True)
         self.build_mesh_model()
 
     @track_error
     def load_mesh(self):
-        self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
+        self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file',
+                                                        self.label_MeshPath.text(),
+                                                        '*.txt')
         if self.mesh_path:
             self.label_MeshPath.setText(self.mesh_path)
         self.build_mesh_model()
 
     @track_error
     def load_model(self):
-        self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
+        self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file',
+                                                         self.label_ModelPath.text(),
+                                                         '*.txt')
         if self.model_path:
             self.label_ModelPath.setText(self.model_path)
         self.build_mesh_model()
@@ -218,13 +316,18 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.reverse_xy()
             self.add_mode = False
             self.grids = pv.MultiBlock()
+            self.actors = []
             self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
     def read_mesh_model(self):
-        self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file', '.\\', '*.txt')
+        self.mesh_path, _ = QFileDialog.getOpenFileName(self, 'Import mesh file',
+                                                        self.label_MeshPath.text(),
+                                                        '*.txt')
         if self.mesh_path:
-            self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file', '.\\', '*.txt')
+            self.model_path, _ = QFileDialog.getOpenFileName(self, 'Import model file',
+                                                             self.label_ModelPath.text(),
+                                                             '*.txt')
             if self.model_path:
                 self.nodeX, self.nodeY, self.nodeZ = read_mesh_file(self.mesh_path)
                 self.model_in = np.loadtxt(self.model_path)
@@ -241,6 +344,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         # self.plotter.set_background('white')
         self.add_mode = False
         self.grids = pv.MultiBlock()
+        self.actors = []
         self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
@@ -249,6 +353,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         # self.plotter.set_background('white')
         self.add_mode = False
         self.grids = pv.MultiBlock()
+        self.actors = []
         self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error_args
@@ -265,8 +370,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             else:
                 # self.plotter.textActor.GetText(2)
                 self.plotter.textActor.ClearAllTexts()
-            self.plotter.add_mesh(self.grid,
-                                  style='wireframe')
+            self.actor = self.plotter.add_mesh(self.grid,
+                                               style='wireframe')
             self.add_size_text()
             self.action_Threshold.setEnabled(False)
         else:
@@ -276,7 +381,6 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 values = values.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
                                         order='F')
                 self.grid.cell_arrays["values"] = values.flatten(order="C")
-                pass
             else:
                 values = model_in.reshape((len(nodeZ) - 1, len(nodeX) - 1, len(nodeY) - 1),
                                           order='F')
@@ -285,12 +389,15 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.plotter.clear()
             else:
                 self.plotter.textActor.ClearAllTexts()
-            self.plotter.add_mesh(self.grid,
-                                  scalars='values',
-                                  show_edges=True)
+            self.actor = self.plotter.add_mesh(self.grid,
+                                               scalars='values',
+                                               show_edges=True,
+                                               scalar_bar_args=self.scalar_args)
+
             self.add_size_text()
             self.action_Threshold.setEnabled(True)
 
+        self.actors.append(self.actor)
         self.bounds_flag = True
         self.bounds()
 
@@ -307,8 +414,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.plotter.clear()
             else:
                 self.plotter.textActor.ClearAllTexts()
-            self.plotter.add_mesh(self.grid,
-                                  style='wireframe')
+            self.actor = self.plotter.add_mesh(self.grid,
+                                               style='wireframe')
             self.add_size_text()
             self.action_Threshold.setEnabled(False)
         else:
@@ -317,12 +424,14 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.plotter.clear()
             else:
                 self.plotter.textActor.ClearAllTexts()
-            self.plotter.add_mesh(self.grid,
-                                  scalars='values',
-                                  show_edges=True)
+            self.actor = self.plotter.add_mesh(self.grid,
+                                               scalars='values',
+                                               show_edges=True,
+                                               scalar_bar_args=self.scalar_args)
             self.add_size_text()
             self.action_Threshold.setEnabled(True)
 
+        self.actors.append(self.actor)
         self.bounds_flag = True
         self.bounds()
 
@@ -330,6 +439,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     def load_mesh_model(self):
         self.add_mode = False
         self.grids = pv.MultiBlock()
+        self.actors = []
         self.read_mesh_model()
 
     @track_error
@@ -374,6 +484,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.reverse_xy()
         self.add_mode = False
         self.grids = pv.MultiBlock()
+        self.actors = []
         self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
         self.set_view_isometric()
 
@@ -392,8 +503,10 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     def add_points(self):
         points_paths, _ = QFileDialog.getOpenFileNames(self,
                                                        "Choose points files",
+                                                       self.points_path,
                                                        "*.txt")
         if points_paths:
+            self.points_path = points_paths[0]
             for i in range(len(points_paths)):
                 points_path = points_paths[i]
                 points_o = np.loadtxt(points_path, delimiter=',')
@@ -406,8 +519,10 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     def add_lines(self):
         points_paths, _ = QFileDialog.getOpenFileNames(self,
                                                        "Choose line points files",
+                                                       self.lines_path,
                                                        "*.txt")
         if points_paths:
+            self.points_path = points_paths[0]
             for i in range(len(points_paths)):
                 points_path = points_paths[i]
                 points = np.loadtxt(points_path, delimiter=',')
@@ -417,53 +532,53 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     @track_error
     def add_threshold(self):
-        self.plotter.clear()
-        # # self.plotter.add_mesh(self.grid,
-        # #                       scalars='values',
-        # #                       opacity=0.3,
-        # #                       #   nan_opacity=0,
-        # #                       categories=True,
-        # #                       show_edges=False)
+        self.threshold_win = ThresholdDialog(self.model_in)
+        self.threshold_win.show()
+        self.threshold_win.signal.connect(self.cutoff)
+
+    @track_error_args
+    def cutoff(self, min_value, max_value):
+        merged_grid = self.grids.combine()
+        self.bounding_box_flag = False
+        self.bounding_box()
         if self.log_flag:
-            for grid in self.grids:
-                self.plotter.add_mesh_threshold(grid,
-                                                invert=False,
-                                                log_scale=True)
+            cutoff_gird = merged_grid.threshold(value=(min_value, max_value))
+            for i in range(len(self.actors)):
+                self.plotter.remove_actor(self.actors[i])
+            self.actor = self.plotter.add_mesh(cutoff_gird,
+                                               log_scale=True,
+                                               scalar_bar_args=self.scalar_args)
+            self.actors = [self.actor]
         else:
-            for grid in self.grids:
-                self.plotter.add_mesh_threshold(grid,
-                                                invert=False)
-        self.bounds_flag = True
+            cutoff_gird = merged_grid.threshold(value=(min_value, max_value),
+                                                continuous=True)
+            for i in range(len(self.actors)):
+                self.plotter.remove_actor(self.actors[i])
+            self.actor = self.plotter.add_mesh(cutoff_gird,
+                                               scalar_bar_args=self.scalar_args)
+            self.actors = [self.actor]
+        self.bounds_flag = False
         self.bounds()
-
-        # print(type(threshed))
-
-        # grid_target = self.grid.cast_to_unstructured_grid()
-        # ghosts = np.argwhere(grid_target["values"] == self.val)
-        # grid_target.remove_cells(ghosts)
-        # self.plotter.add_mesh(grid_target,
-        #                       scalars='values',
-        #                       # log_scale=True,
-        #                       # opacity=1,
-        #                       show_edges=True)
 
     @track_error
     def log_scalar(self):
         if not self.log_flag:
             self.plotter.clear()
-            self.plotter.add_mesh(self.grid,
-                                  scalars='values',
-                                  log_scale=True,
-                                  show_edges=True)
+            self.actor = self.plotter.add_mesh(self.grid,
+                                               scalars='values',
+                                               log_scale=True,
+                                               show_edges=True,
+                                               scalar_bar_args=self.scalar_args)
             self.log_flag = True
 
     @track_error
     def normal_scalar(self):
         if self.log_flag:
             self.plotter.clear()
-            self.plotter.add_mesh(self.grid,
-                                  scalars='values',
-                                  show_edges=True)
+            self.actor = self.plotter.add_mesh(self.grid,
+                                               scalars='values',
+                                               show_edges=True,
+                                               scalar_bar_args=self.scalar_args)
             self.log_flag = False
 
     @track_error
@@ -472,6 +587,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.crop_win.show()
         self.add_mode = False
         self.grids = pv.MultiBlock()
+        self.actors = []
         self.crop_win.signal.connect(self.view_model_ubc)
 
     @track_error
@@ -480,7 +596,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
             pass
         else:
             self.plotter.clear()
-            self.plotter.add_mesh(self.grid, style='wireframe')
+            self.actor = self.plotter.add_mesh(self.grid, style='wireframe')
 
     def bounding_box(self):
         if self.bounding_box_flag:
@@ -524,6 +640,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         variables = [self.label_MeshPath.text(), self.label_ModelPath.text(),
+                     self.points_path, self.lines_path,
                      self.rect().width(), self.rect().height(),
                      self.pos().x(), self.pos().y(),
                      int(self.isMaximized())]
@@ -535,3 +652,4 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.plotter.clear()
         self.add_mode = False
         self.grids = pv.MultiBlock()
+        self.actors = []
