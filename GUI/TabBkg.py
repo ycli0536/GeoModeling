@@ -43,7 +43,7 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
         self.pushButton_meshBrowser.clicked.connect(self.load_mesh)
 
         # cellCon
-        self.lineEdit_numLayers.editingFinished.connect(self.layers_table_init)
+        self.lineEdit_numLayers.editingFinished.connect(self.layers_table_update)
         self.pushButton_build.clicked.connect(self.build_model)
         self.pushButton_viewModel.clicked.connect(self.view_model)
         self.pushButton_save_cellCon.clicked.connect(self.save_model)
@@ -69,19 +69,23 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
                             'well_points', 'well_edgeCon', 'interval']
         init_variables = get_setting_values(self.config_type, self.config_name)
         self.surf_folder = init_variables[0]
-        self.lineEdit_numLayers.setText(init_variables[1])
-        if self.lineEdit_numLayers:
-            self.layers_table_init()
+        if init_variables[1]:
+            self.lineEdit_numLayers.setText(init_variables[1])
+        if self.lineEdit_numLayers.text():
+            layers_num = int(self.lineEdit_numLayers.text())
+            self.layers_table_init(layers_num)
+        else:
+            self.layers_table_init(0)
         self.surf_paths = init_variables[2]
-        self.values = init_variables[3]
         if self.surf_paths:
-            for i in len(self.surf_paths):
+            for i in range(len(self.surf_paths)):
                 self.tableWidget_layered.item(i, 2).setText(self.surf_paths[i])
+        self.values = init_variables[3]
         if self.values:
-            for i in len(self.surf_paths):
+            for i in range(len(self.values)):
                 self.tableWidget_layered.item(i, 0).setText(self.values[i])
-        self.lineEdit_Npoints.setText(init_variables[4])
-        if self.lineEdit_Npoints:
+        if init_variables[4]:
+            self.lineEdit_Npoints.setText(init_variables[4])
             self.tab_well_table_update()
         self.lineEdit_edgeCon.setText(init_variables[5])
         self.lineEdit_int.setText(init_variables[6])
@@ -98,32 +102,37 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
             self.groupBox_CellCon.setEnabled(True)
 
     @track_error
-    def layers_table_init(self):
-        self.layers_num = int(self.lineEdit_numLayers.text())
-        if isinstance(self.layers_num, int):
-            self.tableWidget_layered.setRowCount(self.layers_num)
-            self.Push = [0] * (self.layers_num - 1)
-            for i in range(self.layers_num):
-                item_Vheader = QTableWidgetItem()
-                item_Vheader.setTextAlignment(Qt.AlignCenter)
-                self.tableWidget_layered.setVerticalHeaderItem(i, item_Vheader)
-                self.tableWidget_layered.verticalHeader().setDefaultSectionSize(30)
-                self.tableWidget_layered.verticalHeader().setMinimumSectionSize(20)
-                self.tableWidget_layered.verticalHeaderItem(i).setText(("Layer" + str(i + 1)))
-                self.tableWidget_layered.setItem(i, 0, item_Vheader)
+    def layers_table_update(self):
+        self.layers_table_init(int(self.lineEdit_numLayers.text()))
 
-                if i < self.layers_num - 1:
-                    self.Push[i] = QPushButton()
-                    self.Push[i].setText('Load')
-                    self.Push[i].setObjectName(str(i))
-                    # combox.setStyleSheet("QPushButton{background:white}")
-                    self.tableWidget_layered.setCellWidget(i, 1, self.Push[i])
-            usless_item = QTableWidgetItem()
-            usless_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-            self.tableWidget_layered.setItem(self.layers_num, 2, usless_item)
-            self.tableWidget_layered.setItem(self.layers_num, 3, usless_item)
-            for i in range(len(self.Push)):
-                self.Push[i].clicked.connect(self.find_surface_config)
+    @track_error_args
+    def layers_table_init(self, layers_num):
+        self.layers_num = layers_num
+        self.tableWidget_layered.setRowCount(self.layers_num)
+        self.Push = [0] * (self.layers_num - 1)
+        for i in range(self.layers_num):
+            item_Vheader = QTableWidgetItem()
+            item_Vheader.setTextAlignment(Qt.AlignCenter)
+            self.tableWidget_layered.setVerticalHeaderItem(i, item_Vheader)
+            self.tableWidget_layered.verticalHeader().setDefaultSectionSize(30)
+            self.tableWidget_layered.verticalHeader().setMinimumSectionSize(20)
+            self.tableWidget_layered.verticalHeaderItem(i).setText(("Layer" + str(i + 1)))
+
+            self.tableWidget_layered.setItem(i, 0, QTableWidgetItem())
+            self.tableWidget_layered.setItem(i, 2, QTableWidgetItem())
+
+            if i < self.layers_num - 1:
+                self.Push[i] = QPushButton()
+                self.Push[i].setText('Load')
+                self.Push[i].setObjectName(str(i))
+                # combox.setStyleSheet("QPushButton{background:white}")
+                self.tableWidget_layered.setCellWidget(i, 1, self.Push[i])
+        # usless_item = QTableWidgetItem()
+        # usless_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        # self.tableWidget_layered.setItem(self.layers_num, 2, usless_item)
+        # self.tableWidget_layered.setItem(self.layers_num, 3, usless_item)
+        for i in range(len(self.Push)):
+            self.Push[i].clicked.connect(self.find_surface_config)
 
     @track_error
     def find_surface_config(self):
@@ -133,8 +142,6 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
                                                    self.surf_folder,
                                                    '*.txt')
         if surf_file:
-            item = QTableWidgetItem()
-            self.tableWidget_layered.setItem(ind, 2, item)
             self.tableWidget_layered.item(ind, 2).setText(surf_file)
 
     @track_error_args
@@ -459,11 +466,12 @@ class AddTabBkg(QTabWidget, Ui_TabBkg):
 
     @track_error
     def get_values_surf(self):
+        self.values = []
+        self.surf_paths = []
         for i in range(self.tableWidget_layered.rowCount()):
-            if self.values:
-                self.values[i] = float(self.tableWidget_layered.item(i, 0).text())
-            if self.surf_paths:
-                self.surf_paths[i] = (self.tableWidget_layered.item(i, 2).text())
+            self.values.append(float(self.tableWidget_layered.item(i, 0).text()))
+        for i in range(self.tableWidget_layered.rowCount() - 1):
+            self.surf_paths.append(self.tableWidget_layered.item(i, 2).text())
 
     @track_error
     def tab_removed(self):
