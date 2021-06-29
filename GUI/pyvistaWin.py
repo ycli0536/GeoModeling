@@ -205,6 +205,9 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.reverse_xy_flag = False
 
         self.add_mode = False
+        self.grids = pv.MultiBlock()
+        self.actors = []
+
         self.action_Threshold.setEnabled(False)
 
         self.nodeX = None
@@ -256,6 +259,12 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_XOZview.triggered.connect(self.set_xoz_view)
         self.action_YOZview.triggered.connect(self.set_yoz_view)
         self.action_Isometric.triggered.connect(self.set_view_isometric)
+
+    @track_error
+    def reset_parameters(self):
+        self.add_mode = False
+        self.grids = pv.MultiBlock()
+        self.actors = []
 
     @track_error
     def get_config(self):
@@ -325,9 +334,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                 self.model_in = np.loadtxt(self.model_path)
             if self.reverse_xy_flag:
                 self.reverse_xy()
-            self.add_mode = False
-            self.grids = pv.MultiBlock()
-            self.actors = []
+            self.reset_parameters()
             self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
@@ -353,18 +360,14 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     def display_model_pyvista(self):
         # self.plotter.clear()
         # self.plotter.set_background('white')
-        self.add_mode = False
-        self.grids = pv.MultiBlock()
-        self.actors = []
+        self.reset_parameters()
         self.view_model_pyvista(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error
     def display_model_ubc(self):
         # self.plotter.clear()
         # self.plotter.set_background('white')
-        self.add_mode = False
-        self.grids = pv.MultiBlock()
-        self.actors = []
+        self.reset_parameters()
         self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
 
     @track_error_args
@@ -448,9 +451,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     @track_error
     def load_mesh_model(self):
-        self.add_mode = False
-        self.grids = pv.MultiBlock()
-        self.actors = []
+        self.reset_parameters()
         self.read_mesh_model()
 
     @track_error
@@ -493,9 +494,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         else:
             self.reverse_xy_flag = True
         self.reverse_xy()
-        self.add_mode = False
-        self.grids = pv.MultiBlock()
-        self.actors = []
+        self.reset_parameters()
         self.view_model_ubc(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
         self.set_view_isometric()
 
@@ -596,9 +595,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     def cropping(self):
         self.crop_win = CropModelDialog(self.nodeX, self.nodeY, self.nodeZ, self.model_in)
         self.crop_win.show()
-        self.add_mode = False
-        self.grids = pv.MultiBlock()
-        self.actors = []
+        self.reset_parameters()
         self.crop_win.signal.connect(self.view_model_ubc)
 
     @track_error
@@ -661,6 +658,4 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
 
     def clear(self):
         self.plotter.clear()
-        self.add_mode = False
-        self.grids = pv.MultiBlock()
-        self.actors = []
+        self.reset_parameters()
