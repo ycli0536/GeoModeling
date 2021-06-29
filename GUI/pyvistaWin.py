@@ -196,6 +196,8 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        self.display_init()
+
         self.model_flag = True
         self.bounding_box_flag = False
         self.bounds_flag = True
@@ -259,6 +261,12 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
         self.action_XOZview.triggered.connect(self.set_xoz_view)
         self.action_YOZview.triggered.connect(self.set_yoz_view)
         self.action_Isometric.triggered.connect(self.set_view_isometric)
+
+    @track_error
+    def display_init(self):
+        # pv.set_plot_theme('document')
+        # pv.global_theme.cmap = 'viridis'
+        pass
 
     @track_error
     def reset_parameters(self):
