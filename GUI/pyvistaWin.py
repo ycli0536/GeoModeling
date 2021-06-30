@@ -116,15 +116,13 @@ class ThresholdDialog(QDialog, Ui_ThresholdDialog):
         self.setupUi(self)
         self.get_config()
         self.model_in = model_in
-        self.horizontalSlider_max.setMaximum(self.model_in.max())
-        self.horizontalSlider_max.setMinimum(self.model_in.min())
-        self.horizontalSlider_min.setMaximum(self.model_in.max())
-        self.horizontalSlider_min.setMinimum(self.model_in.min())
-        # self.horizontalSlider_max.setSingleStep((self.model_in.max() - self.model_in.min()) / 100)
-        # self.horizontalSlider_min.setSingleStep((self.model_in.max() - self.model_in.min()) / 100)
+        self.horizontalSlider_max.setMaximum(self.model_in.max() * 10000)
+        self.horizontalSlider_max.setMinimum(self.model_in.min() * 10000)
+        self.horizontalSlider_min.setMaximum(self.model_in.max() * 10000)
+        self.horizontalSlider_min.setMinimum(self.model_in.min() * 10000)
         self.lineEdit_max.setText(str(self.model_in.max()))
         self.lineEdit_min.setText(str(self.model_in.min()))
-        self.horizontalSlider_max.setValue(self.model_in.max())
+        self.horizontalSlider_max.setValue(self.model_in.max() * 10000)
 
         self.lineEdit_max.editingFinished.connect(self.update_slider_max)
         self.lineEdit_min.editingFinished.connect(self.update_slider_min)
@@ -151,27 +149,25 @@ class ThresholdDialog(QDialog, Ui_ThresholdDialog):
     def update_slider_max(self):
         if self.lineEdit_max.text():
             max_val = float(self.lineEdit_max.text())
-            self.horizontalSlider_max.setValue(max_val)
+            self.horizontalSlider_max.setValue(max_val * 10000)
 
     @track_error
     def update_slider_min(self):
         if self.lineEdit_min.text():
             min_val = float(self.lineEdit_min.text())
-            self.horizontalSlider_min.setValue(min_val)
+            self.horizontalSlider_min.setValue(min_val * 10000)
 
     @track_error
     def slider_value_changed_max(self):
         if self.lineEdit_max.text():
-            value_show = float(self.horizontalSlider_max.value())
+            value_show = float(self.horizontalSlider_max.value() / 10000)
             self.lineEdit_max.setText(str(value_show))
-            self.signal_emit()
 
     @track_error
     def slider_value_changed_min(self):
         if self.lineEdit_min.text():
-            value_show = float(self.horizontalSlider_min.value())
+            value_show = float(self.horizontalSlider_min.value() / 10000)
             self.lineEdit_min.setText(str(value_show))
-            self.signal_emit()
 
     @track_error
     def signal_emit(self):
@@ -179,7 +175,7 @@ class ThresholdDialog(QDialog, Ui_ThresholdDialog):
 
     @track_error
     def accepted(self):
-        self.signal.emit(float(self.lineEdit_min.text()), float(self.lineEdit_max.text()))
+        self.signal_emit()
 
     @track_error
     def rejected(self):
