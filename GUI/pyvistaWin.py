@@ -164,12 +164,14 @@ class ThresholdDialog(QDialog, Ui_ThresholdDialog):
         if self.lineEdit_max.text():
             value_show = float(self.horizontalSlider_max.value())
             self.lineEdit_max.setText(str(value_show))
+            self.signal_emit()
 
     @track_error
     def slider_value_changed_min(self):
         if self.lineEdit_min.text():
             value_show = float(self.horizontalSlider_min.value())
             self.lineEdit_min.setText(str(value_show))
+            self.signal_emit()
 
     @track_error
     def signal_emit(self):
@@ -557,6 +559,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
     @track_error_args
     def cutoff(self, min_value, max_value):
         merged_grid = self.grids.combine()
+        self.plotter.add_mesh(merged_grid.outline(), opacity=0.0)
         self.bounding_box_flag = False
         self.bounding_box()
         if self.log_flag:
@@ -568,8 +571,7 @@ class pyvistaWin(MainWindow, Ui_MainWindow):
                                                scalar_bar_args=self.scalar_args)
             self.actors = [self.actor]
         else:
-            cutoff_gird = merged_grid.threshold(value=(min_value, max_value),
-                                                continuous=True)
+            cutoff_gird = merged_grid.threshold(value=(min_value, max_value))
             for i in range(len(self.actors)):
                 self.plotter.remove_actor(self.actors[i])
             self.actor = self.plotter.add_mesh(cutoff_gird,
